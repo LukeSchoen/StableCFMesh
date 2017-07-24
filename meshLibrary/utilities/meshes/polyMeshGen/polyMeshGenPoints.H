@@ -45,6 +45,7 @@ SourceFiles
 #include "meshSubset.H"
 #include "pointFieldPMG.H"
 #include "DynList.H"
+#include "labelIOList.H"
 
 #include <map>
 
@@ -66,6 +67,9 @@ protected:
 
         //- map of point subsets
         std::map<label, meshSubset> pointSubsets_;
+
+        //- point levels
+        labelIOList pointLevel_;
 
     // Disallow bitwise assignment
         void operator=(const polyMeshGenPoints&);
@@ -99,6 +103,12 @@ public:
 
         //- non-const access to points
         inline pointFieldPMG& points();
+
+        //- access to pointLevel
+        inline const labelIOList& pointLevel() const;
+
+        //- non-const access to pointLevel
+        inline labelIOList& pointLevel();
 
         //- append a vertex to the end of the list
         inline void appendVertex(const point& p);

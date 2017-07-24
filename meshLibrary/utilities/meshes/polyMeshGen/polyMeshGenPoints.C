@@ -50,7 +50,18 @@ polyMeshGenPoints::polyMeshGenPoints(const Time& runTime)
         ),
         0
     ),
-    pointSubsets_()
+    pointSubsets_(),
+    pointLevel_
+    (
+        IOobject
+        (
+            "pointLevel",
+            runTime.constant(),
+            "polyMesh",
+            runTime
+        ),
+        0
+    )    
 {
 }
 
@@ -73,7 +84,18 @@ polyMeshGenPoints::polyMeshGenPoints
         ),
         points
     ),
-    pointSubsets_()
+    pointSubsets_(),
+    pointLevel_
+    (
+        IOobject
+        (
+            "pointLevel",
+            runTime.constant(),
+            "polyMesh",
+            runTime
+        ),
+        0
+    )    
 {
 }
 
@@ -179,6 +201,20 @@ void polyMeshGenPoints::read()
 
         pointSubsets_[id].updateSubset(content);
     }
+
+    // read point levels
+    labelIOList pointLevel
+    (
+        IOobject
+        (
+            "pointLevel",
+            runTime_.constant(),
+            "polyMesh",
+            runTime_,
+            IOobject::MUST_READ
+        )
+    );
+    pointLevel_ = pointLevel;    
 }
 
 void polyMeshGenPoints::write() const
@@ -210,6 +246,9 @@ void polyMeshGenPoints::write() const
             set.insert(containedElements[i]);
         set.write();
     }
+
+    //- write pointLevels
+    pointLevel_.write();
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

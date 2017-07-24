@@ -56,6 +56,7 @@ bool checkIrregularSurfaceConnections::checkAndFixCellGroupsAtBndVertices
 
     polyMeshGenModifier meshModifier(mesh_);
     pointFieldPMG& points = meshModifier.pointsAccess();
+    labelList& pointLevel = meshModifier.pointLevelAccess();
     faceListPMG& faces = meshModifier.facesAccess();
     cellListPMG& cells = meshModifier.cellsAccess();
 
@@ -162,6 +163,7 @@ bool checkIrregularSurfaceConnections::checkAndFixCellGroupsAtBndVertices
                     {
                         const point p = points[pointI];
                         points.append(p);
+                        pointLevel.append(pointLevel[pointI]);
                     }
                 }
             }
@@ -439,6 +441,7 @@ bool checkIrregularSurfaceConnections::checkAndFixCellGroupsAtBndVertices
                 {
                     const point p = points[pointI];
                     points.append(p);
+                    pointLevel.append(pointLevel[pointI]);
                 }
             }
         }

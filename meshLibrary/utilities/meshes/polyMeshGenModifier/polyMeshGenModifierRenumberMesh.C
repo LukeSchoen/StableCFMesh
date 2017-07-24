@@ -276,6 +276,7 @@ void polyMeshGenModifier::renumberMesh()
 
     mesh_.updateFaceSubsets(reverseFaceOrder);
     mesh_.updateCellSubsets(reverseOrder);
+    mesh_.updateCellLevel(reverseOrder);
     this->clearOut();
     mesh_.clearOut();
 

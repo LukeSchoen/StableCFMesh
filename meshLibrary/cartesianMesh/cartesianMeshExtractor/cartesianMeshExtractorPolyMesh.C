@@ -77,6 +77,82 @@ void cartesianMeshExtractor::createPolyMesh()
     polyMeshGenModifier meshModifier(mesh_);
     faceListPMG& faces = meshModifier.facesAccess();
     cellListPMG& cells = meshModifier.cellsAccess();
+ 
+    //- generate cellLevel array
+    labelIOList& cellLevel = meshModifier.cellLevelAccess();
+    cellLevel.setSize(nCells); 
+    forAll(leafCellLabel, leafI)
+    {
+        if
+        (
+            Pstream::parRun() &&
+            (octree.returnLeaf(leafI).procNo() != Pstream::myProcNo())
+        )
+        {
+            continue;
+        }
+
+        if (cType[leafI] & meshOctreeAddressing::MESHCELL)
+        {
+            cellLevel[leafCellLabel[leafI]] = octree.returnLeaf(leafI).level();
+        }
+    }
+
+    //- generate pointLevel array
+    labelIOList& pointLevel = meshModifier.pointLevelAccess();
+    pointLevel.setSize(octreeCheck_.numberOfNodes());
+    const VRWGraph& nodeLabels = octreeCheck_.nodeLabels();
+    forAll(cType, leafI)
+    {
+        if (cType[leafI] & meshOctreeAddressing::MESHCELL)
+        {
+            // We could probably deal only with the first point per cube,
+            // and simplify things, but what about end effects? Elegant
+            // way around that? At the moment we end up setting each node 
+            // eight times...
+            // Or rather use nodeLeaf addressing?
+
+            // Start by initialising all points to the cube's octree level
+            const meshOctreeCubeCoordinates& leaf = octree.returnLeaf(leafI);
+            
+            forAllRow(nodeLabels, leafI, i) // This could just be the first one (?)
+            {
+                pointLevel[nodeLabels(leafI, i)] = leaf.level();
+            }
+            
+            // Now, depending on the position of this cube in the parent,
+            // decide which corner cell belongs one level higher
+            //TODO: if this is already the top level, don't promote?
+            // - so that you can't coarsen past original max cell size?
+            label X = leaf.posX();
+            label Y = leaf.posY();
+            label Z = (leaf.posZ() < 0 ? 0 : leaf.posZ());
+            direction oddX = X % 2;
+            direction oddY = Y % 2;
+            direction oddZ = Z % 2;
+            direction vrtI = oddX + oddY*2 + oddZ*4;
+            
+            // Change X,Y,Z to represent the chosen point pos rather than 
+            // cell pos
+            X += oddX;
+            Y += oddY;
+            Z += oddZ;
+
+            // Decide how many levels the chosen point should be promoted
+            direction levelsToPromote = 0;
+            do
+            {
+                levelsToPromote++;
+                X >>= 1;
+                Y >>= 1;
+                Z >>= 1;
+                oddX = X%2;
+                oddY = Y%2;
+                oddZ = Z%2;
+            } while (!oddX && !oddY && !oddZ);             
+            pointLevel[nodeLabels(leafI, vrtI)] -= levelsToPromote;
+        }
+    }
 
     //- start creating octree mesh
     cells.setSize(nCells);

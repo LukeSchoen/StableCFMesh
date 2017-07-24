@@ -272,6 +272,7 @@ void refineBoundaryLayers::refineFace
 
     //- create missing vertices if there are any
     pointFieldPMG& points = mesh_.points();
+    labelIOList& pointLevel = mesh_.pointLevel();
     const point v00 = points[facePoints[0][0]];
     const point v10 = points[facePoints[nLayersDir0][0]];
     const point v01 = points[facePoints[0][nLayersDir1]];
@@ -345,6 +346,7 @@ void refineBoundaryLayers::refineFace
                 //- add the vertex to the mesh
                 facePoints[i][j] = points.size();
                 points.append(newP);
+                pointLevel.append(-1); //TODO
             }
         }
     }

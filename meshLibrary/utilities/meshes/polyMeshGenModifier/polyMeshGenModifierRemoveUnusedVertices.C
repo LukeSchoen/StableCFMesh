@@ -38,6 +38,7 @@ void polyMeshGenModifier::removeUnusedVertices()
 {
     faceListPMG& faces = mesh_.faces_;
     pointFieldPMG& points = mesh_.points_;
+    labelIOList& pointLevel = mesh_.pointLevel_;
 
     boolList usePoint(points.size(), false);
     forAll(faces, faceI)
@@ -59,9 +60,11 @@ void polyMeshGenModifier::removeUnusedVertices()
         if( (newLabel[pI] != -1) && (newLabel[pI] < pI) )
         {
             points[newLabel[pI]] = points[pI];
+            pointLevel[newLabel[pI]] = pointLevel[pI];
         }
-
+    
     points.setSize(nPoints);
+    pointLevel.setSize(nPoints, -1);
 
     forAll(faces, faceI)
     {

@@ -420,11 +420,13 @@ void boundaryLayers::createNewVertices(const labelList& patchLabels)
     mse.pointPoints();
 
     pointFieldPMG& points = mesh_.points();
+    labelIOList& pointLevel = mesh_.pointLevel();
     boolList treatPatches(mesh_.boundaries().size());
     List<direction> patchVertex(bPoints.size());
 
     //- make sure than the points are never re-allocated during the process
     points.reserve(points.size() + 2 * bPoints.size());
+    //pointLevel.reserve(points.size() + 2 * bPoints.size()); //TODO
 
     //- generate new layer vertices for each patch
     forAll(patchLabels, patchI)
@@ -495,6 +497,7 @@ void boundaryLayers::createNewVertices(const labelList& patchLabels)
 
         //- set the size of points
         points.setSize(nPoints_);
+        pointLevel.setSize(nPoints_);
 
         //- calculate coordinates of new points
         # ifdef USE_OMP
@@ -522,17 +525,20 @@ void boundaryLayers::createNewVertices(const labelList& patchLabels)
                 std::pair<label, label> pr(pKey, pKey);
                 const label npI = otherVrts_[pointI][pr];
                 points[npI] = p;
+                pointLevel[npI] = -1; //TODO
             }
             else
             {
                 //- set the new point
                 points[newLabelForVertex_[pointI]] = p;
+                pointLevel[newLabelForVertex_[pointI]] = -1; //TODO
             }
         }
 
         if( Pstream::parRun() )
         {
             points.setSize(nPoints_+procPoints.size());
+            pointLevel.setSize(nPoints_+procPoints.size());
 
             createNewPartitionVerticesParallel
             (
@@ -596,10 +602,12 @@ void boundaryLayers::createNewVertices(const labelList& patchLabels)
             if( !help::isnan(newP) && !help::isinf(newP) )
             {
                 points.append(newP);
+                pointLevel.append(-1); //TODO
             }
             else
             {
                 points.append(p);
+                pointLevel.append(-1); //TODO
             }
             newLabelForVertex_[pointI] = nPoints_;
             ++nPoints_;
@@ -621,10 +629,12 @@ void boundaryLayers::createNewVertices(const labelList& patchLabels)
                     if( !help::isnan(np) && !help::isinf(np) )
                     {
                         points.append(np);
+                        pointLevel.append(-1); //TODO
                     }
                     else
                     {
                         points.append(p);
+                        pointLevel.append(-1); //TODO
                     }
 
                     m.insert
@@ -643,10 +653,12 @@ void boundaryLayers::createNewVertices(const labelList& patchLabels)
             if( !help::isnan(newP) && !help::isinf(newP) )
             {
                 points.append(newP);
+                pointLevel.append(-1); //TODO
             }
             else
             {
                 points.append(p);
+                pointLevel.append(-1); //TODO
             }
 
             newLabelForVertex_[pointI] = nPoints_;
@@ -678,6 +690,13 @@ void boundaryLayers::createNewVertices(const labelList& patchLabels)
             const point p = points[pLabel];
             points[pLabel] = points[bPoints[bpI]];
             points[bPoints[bpI]] = p;
+            // New vertices were created on the boundary. Co-ordinates then
+            // swapped so that new points are internal.
+            // However we don't swap pointLevel, so that it stays
+            // topologically the same.
+            //const label l = pointLevel[pLabel];
+            //pointLevel[pLabel] = pointLevel[bPoints[bpI]];
+            //pointLevel[bPoints[bpI]] = l; //TODO: maybe don't want to switch?
         }
     }
 }
@@ -697,6 +716,7 @@ void boundaryLayers::createNewPartitionVerticesParallel
 
     const meshSurfaceEngine& mse = surfaceEngine();
     pointFieldPMG& points = mesh_.points();
+    labelIOList& pointLevel = mesh_.pointLevel();
     const labelList& bPoints = mse.boundaryPoints();
     const VRWGraph& pointPoints = mse.pointPoints();
     const VRWGraph& bpAtProcs = mse.bpAtProcs();
@@ -784,6 +804,7 @@ void boundaryLayers::createNewPartitionVerticesParallel
         {
             points[nPoints_] = p;
         }
+        pointLevel[nPoints_] = pointLevel[bPoints[bpI]];
         newLabelForVertex_[bPoints[bpI]] = nPoints_;
         ++nPoints_;
     }
@@ -804,6 +825,7 @@ void boundaryLayers::createNewEdgeVerticesParallel
 
     const meshSurfaceEngine& mse = surfaceEngine();
     pointFieldPMG& points = mesh_.points();
+    labelIOList& pointLevel = mesh_.pointLevel();
     const labelList& bPoints = mse.boundaryPoints();
     const VRWGraph& pointPoints = mse.pointPoints();
     const VRWGraph& bpAtProcs = mse.bpAtProcs();
@@ -1112,6 +1134,7 @@ void boundaryLayers::createNewEdgeVerticesParallel
         {
             points[nPoints_] = p;
         }
+        pointLevel[nPoints_] = pointLevel[bPoints[bpI]];
 
         if( pKey == -1 )
         {

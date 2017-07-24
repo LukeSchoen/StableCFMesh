@@ -77,6 +77,7 @@ void decomposeFaces::decomposeMeshFaces(const boolList& decomposeFace)
             ++nFaces;
 
     points.setSize(nPoints + nFaces);
+    mesh_.pointLevel().setSize(nPoints + nFaces, -1);
 
     polyMeshGenModifier meshModifier(mesh_);
     faceListPMG& faces = meshModifier.facesAccess();

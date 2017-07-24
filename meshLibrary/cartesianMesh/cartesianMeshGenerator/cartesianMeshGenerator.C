@@ -239,6 +239,11 @@ void cartesianMeshGenerator::replaceBoundaries()
     renameBoundaryPatches rbp(mesh_, meshDict_);
 }
 
+void cartesianMeshGenerator::fillInCellAndPointLevels()
+{
+    mesh_.fillInCellAndPointLevels();
+}
+
 void cartesianMeshGenerator::renumberMesh()
 {
     polyMeshGenModifier(mesh_).renumberMesh();
@@ -289,6 +294,8 @@ void cartesianMeshGenerator::generateMesh()
     {
         refBoundaryLayers();
     }
+
+    fillInCellAndPointLevels();
 
     renumberMesh();
 

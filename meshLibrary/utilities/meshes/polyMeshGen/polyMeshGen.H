@@ -95,6 +95,9 @@ public:
             return metaDict_;
         }
 
+        // TODO should go in its own sub-file
+        void fillInCellAndPointLevels();
+
     // Read mesh
         void read();
 

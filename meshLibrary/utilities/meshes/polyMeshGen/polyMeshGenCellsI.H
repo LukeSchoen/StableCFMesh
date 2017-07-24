@@ -148,6 +148,24 @@ inline void polyMeshGenCells::updateCellSubsets
         it->second.updateSubset(newCellsForCell);
 }
 
+template<class ListType>
+inline void polyMeshGenCells::updateCellLevel
+(
+    const ListType& newCellLabels
+)
+{
+    labelList newCellLevel(cellLevel_.size());
+    forAll(newCellLabels, cellI)
+    {
+        newCellLevel[newCellLabels[cellI]] = (cellLevel_[cellI]);
+    }
+    forAll(newCellLevel, cellI)
+    {
+        cellLevel_[cellI] = newCellLevel[cellI];
+    }
+
+}
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam

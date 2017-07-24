@@ -26,6 +26,7 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "polyMeshGen.H"
+#include "polyMeshGenAddressing.H"
 #include "demandDrivenData.H"
 #include "OFstream.H"
 
@@ -118,6 +119,59 @@ polyMeshGen::~polyMeshGen()
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+// TODO should go in its own sub-file
+void polyMeshGen::fillInCellAndPointLevels()
+{
+    // Set cell level for undefined cells as max of neighbouring previously 
+    // set cell levels
+    bool allDone = false;
+    labelList newCellLevel(cellLevel_.size(), -1);
+    while (!allDone)
+    {
+        allDone = true;
+
+        // Do a layer of cells
+        const VRWGraph& cellCells = addressingData().cellCells();
+        forAll(cellCells, cellI)
+        {
+            if (cellLevel_[cellI] == -1)
+            {
+                forAllRow(cellCells, cellI, i)
+                {
+                    newCellLevel[cellI] = max(newCellLevel[cellI], cellLevel_[cellCells(cellI, i)]);
+                }
+                if (newCellLevel[cellI] == -1)
+                {
+                    allDone = false;
+                }
+            }
+        }
+
+        // Transfer the layer, ready to do the next one
+        forAll(cellCells, cellI)
+        {
+            if (newCellLevel[cellI] != -1)
+            {
+                cellLevel_[cellI] = newCellLevel[cellI];
+            }
+        }
+
+    }
+
+    // Set point level for undefined points as max of surrounding cell levels
+    const VRWGraph& pointCells = addressingData().pointCells();
+    forAll(pointCells, pointI)
+    {
+        if (pointLevel_[pointI] == -1)
+        {
+            forAllRow(pointCells, pointI, i)
+            {
+                pointLevel_[pointI] = max(pointLevel_[pointI], cellLevel_[pointCells(pointI, i)]);
+            }
+        }
+    }
+}
+
 void polyMeshGen::read()
 {
     polyMeshGenCells::read();
@@ -146,6 +200,9 @@ void polyMeshGen::write() const
     {
         rmDir(meshDir/"sets");
     }
+
+    rm(meshDir/"cellLevel");
+    rm(meshDir/"pointLevel");
 
     //- write the mesh
     polyMeshGenCells::write();

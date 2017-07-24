@@ -134,6 +134,18 @@ public:
             return mesh_.boundaries_;
         }
 
+        //- access to cellLevel data
+        inline labelIOList& cellLevelAccess()
+        {
+            return mesh_.cellLevel_;
+        }
+
+        //- access to pointLevel data
+        inline labelIOList& pointLevelAccess()
+        {
+            return mesh_.pointLevel_;
+        }
+
         //- functions which change the mesh
         //- reorder boundary faces
         void reorderBoundaryFaces();

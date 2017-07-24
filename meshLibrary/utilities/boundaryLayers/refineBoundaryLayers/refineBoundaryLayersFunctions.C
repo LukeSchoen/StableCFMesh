@@ -323,6 +323,7 @@ void refineBoundaryLayers::generateNewVertices()
 {
     const PtrList<boundaryPatch>& boundaries = mesh_.boundaries();
     pointFieldPMG& points = mesh_.points();
+    labelIOList& pointLevel = mesh_.pointLevel();
 
     const meshSurfaceEngine& mse = surfaceEngine();
     const faceList::subList& bFaces = mse.boundaryFaces();
@@ -629,6 +630,7 @@ void refineBoundaryLayers::generateNewVertices()
     }
 
     points.setSize(numPoints);
+    pointLevel.setSize(numPoints, -1); //TODO
 
     # ifdef DEBUGLayer
     Info << "Generating split vertices" << endl;

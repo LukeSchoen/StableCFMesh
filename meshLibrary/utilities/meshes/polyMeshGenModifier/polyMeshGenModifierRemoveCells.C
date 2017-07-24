@@ -49,6 +49,7 @@ void polyMeshGenModifier::removeCells
 
     faceListPMG& faces = mesh_.faces_;
     cellListPMG& cells = mesh_.cells_;
+    labelIOList& cellLevel = mesh_.cellLevel_;
 
     if( removeCell.size() != cells.size() )
     {
@@ -93,9 +94,11 @@ void polyMeshGenModifier::removeCells
         if( (newCellLabel[cellI] != -1) && (newCellLabel[cellI] < cellI) )
         {
             cells[newCellLabel[cellI]].transfer(cells[cellI]);
+            cellLevel[newCellLabel[cellI]] = cellLevel[cellI];
         }
 
     cells.setSize(nCells);
+    cellLevel.setSize(nCells);
 
     //- update cell subsets in the mesh
     mesh_.updateCellSubsets(newCellLabel);

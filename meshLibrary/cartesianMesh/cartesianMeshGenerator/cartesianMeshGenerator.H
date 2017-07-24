@@ -112,6 +112,9 @@ class cartesianMeshGenerator
         //- replace boundaries
         void replaceBoundaries();
 
+        //- Fill in cellLevel and pointLevel for points/cells added after initial octree mesh
+        void fillInCellAndPointLevels();
+
         //- renumber the mesh
         void renumberMesh();
 

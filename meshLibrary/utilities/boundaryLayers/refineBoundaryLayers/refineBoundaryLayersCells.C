@@ -942,6 +942,7 @@ void refineBoundaryLayers::refineCornerHexCell::generateNewPoints()
     //- const references to vertices of the cell ordered in a local
     //- i, j, k coordinate system
     pointFieldPMG& points = bndLayers_.mesh_.points();
+    labelIOList& pointLevel = bndLayers_.mesh_.pointLevel();
     const point v000 = points[seDirI.start()];
     const point v100 = points[seDirI.end()];
     const point v110 = points[facePoints_[0].lastElement().lastElement()];
@@ -1011,6 +1012,7 @@ void refineBoundaryLayers::refineCornerHexCell::generateNewPoints()
                 //- add the point to the mesh
                 cellPoints_[i][j][k] = points.size();
                 points.append(newP);
+                pointLevel.append(-1); //TODO
             }
         }
     }
@@ -1382,8 +1384,10 @@ void refineBoundaryLayers::generateNewCells()
 
     //- set the number of cells to the new value
     cellListPMG& cells = meshModifier.cellsAccess();
+    labelIOList& cellLevel = meshModifier.cellLevelAccess();
     label nCells = cells.size();
     cells.setSize(nCells+nNewCells);
+    cellLevel.setSize(nCells+nNewCells, -1); //TODO
 
     //- start creating new cells
     //- store the information which new cells were generated from

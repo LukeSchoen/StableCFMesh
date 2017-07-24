@@ -59,6 +59,9 @@ protected:
         //- cell subsets
         std::map<label, meshSubset> cellSubsets_;
 
+        //- cell levels
+        labelIOList cellLevel_;
+
         //- primitive mesh which calculates addressing
         mutable polyMeshGenAddressing* addressingDataPtr_;
 
@@ -133,6 +136,8 @@ public:
         template<class ListType>
         inline void updateCellSubsets(const ListType&);
         inline void updateCellSubsets(const VRWGraph&);
+        template<class ListType>
+        inline void updateCellLevel(const ListType&);
 
     // Read mesh
         void read();

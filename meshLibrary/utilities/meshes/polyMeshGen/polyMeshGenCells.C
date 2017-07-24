@@ -265,6 +265,17 @@ polyMeshGenCells::polyMeshGenCells(const Time& runTime)
     polyMeshGenFaces(runTime),
     cells_(),
     cellSubsets_(),
+    cellLevel_
+    (
+        IOobject
+        (
+            "cellLevel",
+            runTime.constant(),
+            "polyMesh",
+            runTime
+        ),
+        0
+    ),
     addressingDataPtr_(NULL)
 {
 }
@@ -281,6 +292,17 @@ polyMeshGenCells::polyMeshGenCells
     polyMeshGenFaces(runTime, points, faces),
     cells_(),
     cellSubsets_(),
+    cellLevel_
+    (
+        IOobject
+        (
+            "cellLevel",
+            runTime.constant(),
+            "polyMesh",
+            runTime
+        ),
+        0
+    ),
     addressingDataPtr_(NULL)
 {
     cells_ = cells;
@@ -308,6 +330,17 @@ polyMeshGenCells::polyMeshGenCells
         nFacesInPatch
     ),
     cells_(),
+    cellLevel_
+    (
+        IOobject
+        (
+            "cellLevel",
+            runTime.constant(),
+            "polyMesh",
+            runTime
+        ),
+        0
+    ),
     cellSubsets_(),
     addressingDataPtr_(NULL)
 {
@@ -470,6 +503,20 @@ void polyMeshGenCells::read()
 
         cellSubsets_[id].updateSubset(content);
     }
+
+    // read cell levels
+    labelIOList cellLevel
+    (
+        IOobject
+        (
+            "cellLevel",
+            runTime_.constant(),
+            "polyMesh",
+            runTime_,
+            IOobject::MUST_READ
+        )
+    );
+    cellLevel_ = cellLevel;    
 }
 
 void polyMeshGenCells::write() const
@@ -500,6 +547,9 @@ void polyMeshGenCells::write() const
             set.insert(containedElements[i]);
         set.write();
     }
+
+    //- write cellLevels
+    cellLevel_.write();
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

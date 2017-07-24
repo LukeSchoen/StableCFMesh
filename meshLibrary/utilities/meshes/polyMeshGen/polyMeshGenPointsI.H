@@ -51,6 +51,16 @@ inline pointFieldPMG& polyMeshGenPoints::points()
     return points_;
 }
         
+inline const labelIOList& polyMeshGenPoints::pointLevel() const
+{
+    return pointLevel_;
+}
+
+inline labelIOList& polyMeshGenPoints::pointLevel()
+{
+    return pointLevel_;
+}
+        
 inline void polyMeshGenPoints::appendVertex(const point& p)
 {
     points_.append(p);
