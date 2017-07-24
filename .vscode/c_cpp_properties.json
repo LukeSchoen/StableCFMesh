@@ -1,0 +1,167 @@
+{
+    "configurations": [
+        {
+            "name": "Mac",
+            "includePath": [
+                "${workspaceRoot}",
+                "/usr/include",
+                "/usr/local/include"
+            ],
+            "defines": [],
+            "browse": {
+                "path": [
+                    "/usr/include",
+                    "/usr/local/include",
+                    "${workspaceRoot}"
+                ],
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": ""
+            },
+            "intelliSenseMode": "clang-x64",
+            "macFrameworkPath": [
+                "/System/Library/Frameworks",
+                "/Library/Frameworks"
+            ]
+        },
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceRoot}",
+                "/usr/include/c++/7",
+                "/usr/include/c++/7/x86_64-redhat-linux",
+                "/usr/include/c++/6.3.1",
+                "/usr/include/c++/6.3.1/x86_64-redhat-linux",
+                "/usr/local/include",
+                "/usr/include",
+                "/usr/include/linux",
+                "${FOAM_SRC}/ODE/lnInclude",
+                "${FOAM_SRC}/OSspecific/POSIX/lnInclude",
+                "${FOAM_SRC}/OpenFOAM/lnInclude",
+                "${FOAM_SRC}/Pstream/dummy/lnInclude",
+                "${FOAM_SRC}/Pstream/mpi/lnInclude",
+                "${FOAM_SRC}/TurbulenceModels",
+                "${FOAM_SRC}/TurbulenceModels/compressible/lnInclude",
+                "${FOAM_SRC}/TurbulenceModels/incompressible/lnInclude",
+                "${FOAM_SRC}/TurbulenceModels/phaseCompressible/lnInclude",
+                "${FOAM_SRC}/TurbulenceModels/phaseIncompressible/lnInclude",
+                "${FOAM_SRC}/TurbulenceModels/turbulenceModels/lnInclude",
+                "${FOAM_SRC}/combustionModels/lnInclude",
+                "${FOAM_SRC}/conversion/lnInclude",
+                "${FOAM_SRC}/dummyThirdParty/MGridGen/lnInclude",
+                "${FOAM_SRC}/dummyThirdParty/metisDecomp/lnInclude",
+                "${FOAM_SRC}/dummyThirdParty/ptscotchDecomp/lnInclude",
+                "${FOAM_SRC}/dummyThirdParty/scotchDecomp/lnInclude",
+                "${FOAM_SRC}/dynamicFvMesh/lnInclude",
+                "${FOAM_SRC}/dynamicMesh/lnInclude",
+                "${FOAM_SRC}/edgeMesh/lnInclude",
+                "${FOAM_SRC}/engine/lnInclude",
+                "${FOAM_SRC}/fileFormats/lnInclude",
+                "${FOAM_SRC}/finiteVolume/lnInclude",
+                "${FOAM_SRC}/functionObjects/field/lnInclude",
+                "${FOAM_SRC}/functionObjects/forces/lnInclude",
+                "${FOAM_SRC}/functionObjects/lagrangian/lnInclude",
+                "${FOAM_SRC}/functionObjects/solvers/lnInclude",
+                "${FOAM_SRC}/functionObjects/utilities/lnInclude",
+                "${FOAM_SRC}/fvAgglomerationMethods/pairPatchAgglomeration/lnInclude",
+                "${FOAM_SRC}/fvMotionSolver/lnInclude",
+                "${FOAM_SRC}/fvOptions/lnInclude",
+                "${FOAM_SRC}/genericPatchFields/lnInclude",
+                "${FOAM_SRC}/lagrangian/DSMC/lnInclude",
+                "${FOAM_SRC}/lagrangian/basic/lnInclude",
+                "${FOAM_SRC}/lagrangian/coalCombustion/lnInclude",
+                "${FOAM_SRC}/lagrangian/distributionModels/lnInclude",
+                "${FOAM_SRC}/lagrangian/intermediate/lnInclude",
+                "${FOAM_SRC}/lagrangian/molecularDynamics/molecularMeasurements/lnInclude",
+                "${FOAM_SRC}/lagrangian/molecularDynamics/molecule/lnInclude",
+                "${FOAM_SRC}/lagrangian/molecularDynamics/potential/lnInclude",
+                "${FOAM_SRC}/lagrangian/solidParticle/lnInclude",
+                "${FOAM_SRC}/lagrangian/spray/lnInclude",
+                "${FOAM_SRC}/lagrangian/turbulence/lnInclude",
+                "${FOAM_SRC}/mesh/blockMesh/lnInclude",
+                "${FOAM_SRC}/mesh/extrudeModel/lnInclude",
+                "${FOAM_SRC}/mesh/snappyHexMesh/lnInclude",
+                "${FOAM_SRC}/meshTools/lnInclude",
+                "${FOAM_SRC}/parallel/decompose/decompose/lnInclude",
+                "${FOAM_SRC}/parallel/decompose/decompositionMethods/lnInclude",
+                "${FOAM_SRC}/parallel/decompose/metisDecomp/lnInclude",
+                "${FOAM_SRC}/parallel/decompose/ptscotchDecomp/lnInclude",
+                "${FOAM_SRC}/parallel/decompose/scotchDecomp/lnInclude",
+                "${FOAM_SRC}/parallel/distributed/lnInclude",
+                "${FOAM_SRC}/parallel/reconstruct/reconstruct/lnInclude",
+                "${FOAM_SRC}/randomProcesses/lnInclude",
+                "${FOAM_SRC}/regionCoupled/lnInclude",
+                "${FOAM_SRC}/regionModels/pyrolysisModels/lnInclude",
+                "${FOAM_SRC}/regionModels/regionCoupling/lnInclude",
+                "${FOAM_SRC}/regionModels/regionModel/lnInclude",
+                "${FOAM_SRC}/regionModels/surfaceFilmModels/derivedFvPatchFields/wallFunctions/lnInclude",
+                "${FOAM_SRC}/regionModels/surfaceFilmModels/lnInclude",
+                "${FOAM_SRC}/regionModels/thermalBaffleModels/lnInclude",
+                "${FOAM_SRC}/renumber/SloanRenumber/lnInclude",
+                "${FOAM_SRC}/renumber/renumberMethods/lnInclude",
+                "${FOAM_SRC}/rigidBodyDynamics/lnInclude",
+                "${FOAM_SRC}/rigidBodyMeshMotion/lnInclude",
+                "${FOAM_SRC}/sampling/lnInclude",
+                "${FOAM_SRC}/sixDoFRigidBodyMotion/lnInclude",
+                "${FOAM_SRC}/surfMesh/lnInclude",
+                "${FOAM_SRC}/thermophysicalModels/SLGThermo/lnInclude",
+                "${FOAM_SRC}/thermophysicalModels/barotropicCompressibilityModel/lnInclude",
+                "${FOAM_SRC}/thermophysicalModels/basic/lnInclude",
+                "${FOAM_SRC}/thermophysicalModels/chemistryModel/lnInclude",
+                "${FOAM_SRC}/thermophysicalModels/laminarFlameSpeed/lnInclude",
+                "${FOAM_SRC}/thermophysicalModels/properties/liquidMixtureProperties/lnInclude",
+                "${FOAM_SRC}/thermophysicalModels/properties/liquidProperties/lnInclude",
+                "${FOAM_SRC}/thermophysicalModels/properties/solidMixtureProperties/lnInclude",
+                "${FOAM_SRC}/thermophysicalModels/properties/solidProperties/lnInclude",
+                "${FOAM_SRC}/thermophysicalModels/radiation/lnInclude",
+                "${FOAM_SRC}/thermophysicalModels/reactionThermo/lnInclude",
+                "${FOAM_SRC}/thermophysicalModels/solidChemistryModel/lnInclude",
+                "${FOAM_SRC}/thermophysicalModels/solidSpecie/lnInclude",
+                "${FOAM_SRC}/thermophysicalModels/solidThermo/lnInclude",
+                "${FOAM_SRC}/thermophysicalModels/specie/lnInclude",
+                "${FOAM_SRC}/thermophysicalModels/thermophysicalFunctions/lnInclude",
+                "${FOAM_SRC}/topoChangerFvMesh/lnInclude",
+                "${FOAM_SRC}/transportModels/compressible/lnInclude",
+                "${FOAM_SRC}/transportModels/immiscibleIncompressibleTwoPhaseMixture/lnInclude",
+                "${FOAM_SRC}/transportModels/incompressible/lnInclude",
+                "${FOAM_SRC}/transportModels/interfaceProperties/lnInclude",
+                "${FOAM_SRC}/transportModels/twoPhaseMixture/lnInclude",
+                "${FOAM_SRC}/transportModels/twoPhaseProperties/lnInclude",
+                "${FOAM_SRC}/triSurface/lnInclude"
+            ],
+            "defines": [],
+            "browse": {
+                "path": [
+                    "/usr/include/c++/6.3.1",
+                    "/usr/local/include",
+                    "/usr/include",
+                    "${FOAM_SRC}",
+                    "${workspaceRoot}"
+                ],
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": ""
+            },
+            "intelliSenseMode": "clang-x64"
+        },
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceRoot}",
+                "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/include"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE"
+            ],
+            "browse": {
+                "path": [
+                    "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/include/*",
+                    "${workspaceRoot}"
+                ],
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": ""
+            },
+            "intelliSenseMode": "msvc-x64"
+        }
+    ],
+    "version": 3
+}
