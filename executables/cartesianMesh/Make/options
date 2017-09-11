@@ -1,4 +1,19 @@
 ifeq (OpenFOAM,$(findstring OpenFOAM,$(WM_PROJECT)))
+    ifeq (OPENFOAM_PLUS,$(findstring OPENFOAM_PLUS,$(WM_VERSION)))
+        VER := $(shell expr `echo $(WM_PROJECT_VERSION)` \>= 1706)
+        ifeq ($(VER), 1)
+            CFMESH_LIBS = -lmeshTools -lsurfMesh -lfiniteVolume
+        else
+            CFMESH_LIBS = -lmeshTools -ltriSurface -lfiniteVolume -ledgeMesh
+        endif
+    else
+        VER := $(shell expr `echo $(WM_PROJECT_VERSION)` \>= 5.0)
+        ifeq ($(VER), 1)
+            CFMESH_LIBS = -lmeshTools -ltriSurface -lfiniteVolume
+        else
+            CFMESH_LIBS = -lmeshTools -ltriSurface -lfiniteVolume -ledgeMesh
+        endif
+    endif
     ifeq (Int,$(findstring Int,$(WM_LABEL_OPTION)))
         CFMESH_MACROS = -DNoSizeType
     else
@@ -26,6 +41,7 @@ endif
 EXE_INC = \
     $(CFMESH_MACROS) \
     -I$(LIB_SRC)/triSurface/lnInclude \
+    -I$(LIB_SRC)/surfMesh/lnInclude \
     -I$(LIB_SRC)/meshTools/lnInclude \
     -I$(LIB_SRC)/finiteVolume/lnInclude \
     -I$(LIB_SRC)/edgeMesh/lnInclude \

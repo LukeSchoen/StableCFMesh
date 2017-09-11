@@ -5,11 +5,17 @@ else
 endif
 
 ifeq (OpenFOAM,$(findstring OpenFOAM,$(WM_PROJECT)))
-    ifeq (Int,$(findstring Int,$(WM_LABEL_OPTION)))
-        CFMESH_MACROS = -DNoSizeType
-        LIBS =
+    VER := $(shell expr `echo $(WM_PROJECT_VERSION)` \>= 5.0)
+    ifeq ($(VER),1)
+        CFMESH_MACROS = -DOFVersionPost5
     else
         CFMESH_MACROS =
+    endif
+    ifeq (Int,$(findstring Int,$(WM_LABEL_OPTION)))
+    	CFMESH_MACROS := $(CFMESH_MACROS) -DNoSizeType
+        LIBS =
+    else
+        CFMESH_MACROS := $(CFMESH_MACROS)
         LIBS =
     endif
 endif

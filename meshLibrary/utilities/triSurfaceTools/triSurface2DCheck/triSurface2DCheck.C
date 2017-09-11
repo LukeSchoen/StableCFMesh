@@ -95,8 +95,13 @@ bool triSurface2DCheck::is2DSurface() const
     # else
     const vector n
     (
-        eigenVector(covarianceMatrix_, eigenVal[1]) ^
-        eigenVector(covarianceMatrix_, eigenVal[2])
+        #ifdef OFVersionPost5
+            eigenVector(covarianceMatrix_, eigenVal[1], vector(1,0,0), vector(0,1,0)) ^
+            eigenVector(covarianceMatrix_, eigenVal[2], vector(1,0,0), vector(0,1,0))
+        #else
+            eigenVector(covarianceMatrix_, eigenVal[1]) ^
+            eigenVector(covarianceMatrix_, eigenVal[2])
+        #endif
     );
     # endif
 
