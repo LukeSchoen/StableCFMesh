@@ -92,6 +92,9 @@ class meshOctree
         //- a flag whether is true if is it a quadtree
         const bool isQuadtree_;
 
+        //- The base mesh refinement level, stored for future use
+        direction globalRefLevel_;
+
     // Private member functions
         //- set data needed for finding neighbours
         void setOctantVectorsAndPositions();
@@ -325,6 +328,10 @@ public:
 
         //- return rootBox
         inline const boundBox& rootBox() const;
+
+        //- get/set the global refinement level
+        const direction& globalRefLevel() const { return globalRefLevel_; };
+        void setGlobalRefLevel(const direction& globalRefLevel) { globalRefLevel_ = globalRefLevel; };
 
         //- return positions which need to be searched
         //- to achieve 1-irregular octree

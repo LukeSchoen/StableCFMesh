@@ -113,6 +113,7 @@ void meshOctreeCreator::setRootCubeSizeAndRefParameters()
         << label(globalRefLevel_) << endl;
 
     octreeModifier.isRootInitialisedAccess() = true;
+    octree_.setGlobalRefLevel(globalRefLevel_);
 
     //surfRefLevel_ = globalRefLevel_;
     forAll(surfRefLevel_, triI)

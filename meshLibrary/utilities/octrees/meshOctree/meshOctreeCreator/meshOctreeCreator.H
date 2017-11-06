@@ -155,6 +155,7 @@ public:
             const direction maxLevel,
             const label nTrianglesInLeaf = 15
         );
+
 };
 
 

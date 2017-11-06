@@ -94,7 +94,9 @@ void cartesianMeshExtractor::createPolyMesh()
 
         if (cType[leafI] & meshOctreeAddressing::MESHCELL)
         {
-            cellLevel[leafCellLabel[leafI]] = octree.returnLeaf(leafI).level();
+            // Return the refinement level relative to base level, for consistency
+            // with the refinement level settings in the mesher
+            cellLevel[leafCellLabel[leafI]] = octree.returnLeaf(leafI).level()-octree.globalRefLevel();
         }
     }
 
@@ -117,7 +119,7 @@ void cartesianMeshExtractor::createPolyMesh()
             
             forAllRow(nodeLabels, leafI, i) // This could just be the first one (?)
             {
-                pointLevel[nodeLabels(leafI, i)] = leaf.level();
+                pointLevel[nodeLabels(leafI, i)] = leaf.level()-octree.globalRefLevel();
             }
             
             // Now, depending on the position of this cube in the parent,
@@ -153,6 +155,8 @@ void cartesianMeshExtractor::createPolyMesh()
             pointLevel[nodeLabels(leafI, vrtI)] -= levelsToPromote;
         }
     }
+    // Don't promote above the base mesh level
+    pointLevel = max(pointLevel, 0);
 
     //- start creating octree mesh
     cells.setSize(nCells);

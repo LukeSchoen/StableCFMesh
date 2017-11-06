@@ -53,6 +53,7 @@ meshOctree::meshOctree(const triSurf& ts, const bool isQuadtree)
     initialCubeRotation_(0),
     rootBox_(),
     isRootInitialised_(false),
+    globalRefLevel_(0),
     searchRange_(0.0),
     octantVectors_(),
     vrtLeavesPos_(),
