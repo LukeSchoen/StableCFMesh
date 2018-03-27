@@ -5,23 +5,30 @@ else
 endif
 
 ifeq (OpenFOAM,$(findstring OpenFOAM,$(WM_PROJECT)))
-    VER := $(shell expr `echo $(WM_PROJECT_VERSION)` \>= 5.0)
-    ifeq ($(VER),1)
-        CFMESH_MACROS = -DOFVersionPost5
+    ifeq (OPENFOAM_PLUS,$(findstring OPENFOAM_PLUS,$(WM_VERSION)))
+        VER := $(shell expr `echo $(WM_PROJECT_VERSION)` \>= 1706)
+        ifeq ($(VER), 1)
+            CFMESH_MACROS = -DOpenCFDSpecific -DOFVersionPost5
+            CFMESH_LIBS = -lmeshTools -lsurfMesh
+        else
+            CFMESH_MACROS = -DOpenCFDSpecific
+            CFMESH_LIBS = -lmeshTools -ltriSurface -ledgeMesh
+        endif
     else
-        CFMESH_MACROS =
+        VER := $(shell expr `echo $(WM_PROJECT_VERSION)` \>= 5.0)
+        ifeq ($(VER),1)
+            CFMESH_MACROS = -DOFVersionPost5
+            LIBS = -ltriSurface -lmeshTools
+        else
+            CFMESH_MACROS =
+            LIBS = -ltriSurface -ledgeMesh -lmeshTools
+        endif
     endif
     ifeq (Int,$(findstring Int,$(WM_LABEL_OPTION)))
-    	CFMESH_MACROS := $(CFMESH_MACROS) -DNoSizeType
-        LIBS =
+        CFMESH_MACROS := $(CFMESH_MACROS) -DNoSizeType
     else
         CFMESH_MACROS := $(CFMESH_MACROS)
-        LIBS =
     endif
-endif
-
-ifeq (v, $(findstring v, $(WM_PROJECT_VERSION)))
-    CFMESH_MACROS += -DOpenCFDSpecific
 endif
 
 ifeq ($(WM_PROJECT), foam)
