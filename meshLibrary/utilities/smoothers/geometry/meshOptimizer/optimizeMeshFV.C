@@ -462,7 +462,9 @@ void meshOptimizer::untangleBoundaryLayer()
 
             returnReduce(1, sumOp<label>());
 
-            throw std::logic_error
+            //OO Just warn; do not quit
+            //throw std::logic_error
+            WarningIn
             (
                 "void meshOptimizer::untangleBoundaryLayer()"
                 "Found invalid faces in the boundary layer."
