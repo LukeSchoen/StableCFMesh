@@ -248,7 +248,7 @@ labelList polyMeshGenFaces::findPatches(const word& patchName) const
 {
     wordList allPatches = patchNames();
 
-    labelList patchIDs = findStrings(patchName, allPatches);
+    labelList patchIDs = findStrings(wordRe(patchName), allPatches);
 
     if(patchIDs.empty())
     {

@@ -1,6 +1,6 @@
 ifeq (OpenFOAM,$(findstring OpenFOAM,$(WM_PROJECT)))
-    ifeq (OPENFOAM_PLUS,$(findstring OPENFOAM_PLUS,$(WM_VERSION)))
-        VER := $(shell expr `echo $(WM_PROJECT_VERSION)` \>= 1706)
+    ifeq (v,$(WM_PROJECT_VERSION:v%=v))
+        VER := $(shell expr `echo $(WM_PROJECT_VERSION)` \>= v1706)
         ifeq ($(VER), 1)
             CFMESH_LIBS = -lmeshTools -lsurfMesh -lfiniteVolume
         else

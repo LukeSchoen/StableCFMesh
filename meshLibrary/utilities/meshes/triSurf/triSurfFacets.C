@@ -89,7 +89,7 @@ labelList triSurfFacets::findPatches(const word& patchName) const
 {
     const wordList allPatches = patchNames();
 
-    const labelList patchIDs = findStrings(patchName, allPatches);
+    const labelList patchIDs = findStrings(wordRe(patchName), allPatches);
 
     # ifdef DEBUGtriSurf
     if(patchIDs.empty())
