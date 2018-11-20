@@ -6,18 +6,18 @@ endif
 
 ifeq (OpenFOAM,$(findstring OpenFOAM,$(WM_PROJECT)))
     ifeq (v,$(WM_PROJECT_VERSION:v%=v))
-        VER := $(shell expr `echo $(WM_PROJECT_VERSION)` \>= v1706)
+        VER := $(shell expr $(WM_PROJECT_VERSION) \>= v1706)
         ifeq ($(VER), 1)
-            CFMESH_MACROS = -DOpenCFDSpecific -DOFVersionPost5
+            CFMESH_MACROS = -DOpenCFDSpecific
             LIBS = -lmeshTools -lsurfMesh
         else
             CFMESH_MACROS = -DOpenCFDSpecific
             LIBS = -lmeshTools -ltriSurface -ledgeMesh
         endif
     else
-        VER := $(shell expr `echo $(WM_PROJECT_VERSION)` \>= 5.0)
+        VER := $(shell expr $(WM_PROJECT_VERSION) \>= 5)
         ifeq ($(VER),1)
-            CFMESH_MACROS = -DOFVersionPost5
+            CFMESH_MACROS =
             LIBS = -ltriSurface -lmeshTools
         else
             CFMESH_MACROS =
@@ -32,7 +32,7 @@ ifeq (OpenFOAM,$(findstring OpenFOAM,$(WM_PROJECT)))
 endif
 
 ifeq ($(WM_PROJECT), foam)
-    VER := $(shell expr `echo $(WM_PROJECT_VERSION)` \>= 3.2)
+    VER := $(shell expr $(WM_PROJECT_VERSION) \>= 3.2)
     ifeq ($(VER), 1)
         CFMESH_MACROS = -DExtendSpecific -std=c++11
         LIBS = -lmeshTools -ledgeMesh
@@ -42,7 +42,7 @@ ifeq ($(WM_PROJECT), foam)
 endif
 
 EXE_INC = \
-    $(OMP_FLAGS) $(CFMESH_MACROS) \
+    $(OMP_FLAGS) $(CFMESH_MACROS) $(INC) \
     -I$(LIB_SRC)/triSurface/lnInclude \
     -I$(LIB_SRC)/surfMesh/lnInclude \
     -I$(LIB_SRC)/edgeMesh/lnInclude \
