@@ -27,7 +27,11 @@ Description
 
 #include "polyMeshGenCells.H"
 #include "polyMeshGenAddressing.H"
+#ifdef BLUECFD
+#include "IOobjectList.T.H"
+#else
 #include "IOobjectList.H"
+#endif
 #include "cellSet.H"
 #include "demandDrivenData.H"
 

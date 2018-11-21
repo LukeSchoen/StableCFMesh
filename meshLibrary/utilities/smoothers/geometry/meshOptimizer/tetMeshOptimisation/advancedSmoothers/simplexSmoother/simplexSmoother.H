@@ -36,7 +36,11 @@ SourceFiles
 #ifndef simplexSmoother_H
 #define simplexSmoother_H
 
+#ifdef BLUECFD
+#include "point.T.H"
+#else
 #include "point.H"
+#endif
 #include "DynList.H"
 #include "partTet.H"
 #include "boundBox.H"

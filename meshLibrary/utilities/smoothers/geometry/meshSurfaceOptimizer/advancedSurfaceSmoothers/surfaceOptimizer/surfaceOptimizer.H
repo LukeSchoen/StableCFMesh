@@ -35,7 +35,11 @@ SourceFiles
 #ifndef surfaceOptimizer_H
 #define surfaceOptimizer_H
 
+#ifdef BLUECFD
+#include "point.T.H"
+#else
 #include "point.H"
+#endif
 #include "triFace.H"
 #include "DynList.H"
 

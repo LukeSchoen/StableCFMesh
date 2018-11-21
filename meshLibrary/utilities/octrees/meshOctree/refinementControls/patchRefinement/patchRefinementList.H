@@ -35,7 +35,11 @@ SourceFiles
 #define patchRefinementList_H
 
 #include "patchRefinement.H"
+#ifdef BLUECFD
+#include "List.T.H"
+#else
 #include "List.H"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

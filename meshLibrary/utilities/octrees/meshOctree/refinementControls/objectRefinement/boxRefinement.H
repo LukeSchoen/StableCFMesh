@@ -36,7 +36,11 @@ SourceFiles
 #define boxRefinement_H
 
 #include "objectRefinement.H"
+#ifdef BLUECFD
+#include "point.T.H"
+#else
 #include "point.H"
+#endif
 #include "typeInfo.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

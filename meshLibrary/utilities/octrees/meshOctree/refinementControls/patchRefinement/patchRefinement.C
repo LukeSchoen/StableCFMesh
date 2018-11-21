@@ -27,7 +27,11 @@ Description
 
 #include "patchRefinement.H"
 #include "triSurf.H"
+#ifdef BLUECFD
+#include "Istream.T.H"
+#else
 #include "Istream.H"
+#endif
 #include "demandDrivenData.H"
 
 

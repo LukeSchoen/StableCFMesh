@@ -41,8 +41,12 @@ ifeq ($(WM_PROJECT), foam)
     endif
 endif
 
+ifdef BLUECFDPATH
+    BLUECFD = -DBLUECFD
+endif
+
 EXE_INC = \
-    $(OMP_FLAGS) $(CFMESH_MACROS) $(INC) \
+    $(OMP_FLAGS) $(CFMESH_MACROS) $(BLUECFD) \
     -I$(LIB_SRC)/triSurface/lnInclude \
     -I$(LIB_SRC)/surfMesh/lnInclude \
     -I$(LIB_SRC)/edgeMesh/lnInclude \

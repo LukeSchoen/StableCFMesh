@@ -26,7 +26,11 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "meshOctree.H"
+#ifdef BLUECFD
+#include "HashSet.T.H"
+#else
 #include "HashSet.H"
+#endif
 
 //#define OCTREE_DEBUG
 

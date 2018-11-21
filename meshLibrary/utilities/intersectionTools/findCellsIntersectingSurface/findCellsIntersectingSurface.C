@@ -33,7 +33,11 @@ Description
 #include "helperFunctions.H"
 #include "meshOctree.H"
 #include "meshOctreeCreator.H"
+#ifdef BLUECFD
+#include "HashSet.T.H"
+#else
 #include "HashSet.H"
+#endif
 
 # ifdef USE_OMP
 #include <omp.h>

@@ -37,7 +37,11 @@ SourceFiles
 #define parMapperHelper_H
 
 #include "label.H"
+#ifdef BLUECFD
+#include "point.T.H"
+#else
 #include "point.H"
+#endif
 #include "contiguous.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

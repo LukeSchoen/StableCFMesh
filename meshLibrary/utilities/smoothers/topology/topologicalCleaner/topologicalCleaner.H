@@ -37,7 +37,11 @@ SourceFiles
 
 #include "polyMeshGenModifier.H"
 #include "boolList.H"
+#ifdef BLUECFD
+#include "HashSet.T.H"
+#else
 #include "HashSet.H"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

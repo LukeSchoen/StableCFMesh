@@ -39,7 +39,11 @@ SourceFiles
 
 #include "label.H"
 #include "LongList.H"
+#ifdef BLUECFD
+#include "FixedList.T.H"
+#else
 #include "FixedList.H"
+#endif
 #include "bool.H"
 #include "error.H"
 

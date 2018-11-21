@@ -36,7 +36,11 @@ SourceFiles
 #define meshSubset_H
 
 #include "label.H"
+#ifdef BLUECFD
+#include "HashSet.T.H"
+#else
 #include "HashSet.H"
+#endif
 #include "VRWGraph.H"
 
 #include <set>

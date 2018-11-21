@@ -36,13 +36,21 @@ SourceFiles
 
 #include "DynList.H"
 #include "plane.H"
+#ifdef BLUECFD
+#include "face.T.H"
+#else
 #include "face.H"
+#endif
 
 #include "triSurf.H"
 #include "triangle.H"
 #include "tetrahedron.H"
 #include "boolList.H"
+#ifdef BLUECFD
+#include "HashSet.T.H"
+#else
 #include "HashSet.H"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

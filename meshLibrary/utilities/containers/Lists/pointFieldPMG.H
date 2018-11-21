@@ -38,7 +38,11 @@ SourceFiles
 
 #include "regIOobject.H"
 #include "pointField.H"
+#ifdef BLUECFD
+#include "Istream.T.H"
+#else
 #include "Istream.H"
+#endif
 #include "Ostream.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

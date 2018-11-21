@@ -40,7 +40,11 @@ SourceFiles
 #include "meshSubset.H"
 #include "pointField.H"
 #include "DynList.H"
+#ifdef BLUECFD
+#include "Map.T.H"
+#else
 #include "Map.H"
+#endif
 
 namespace Foam
 {

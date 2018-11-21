@@ -35,7 +35,11 @@ Description
 #include "helperFunctions.H"
 #include "meshOctreeModifier.H"
 
+#ifdef BLUECFD
+#include "Map.T.H"
+#else
 #include "Map.H"
+#endif
 
 # ifdef USE_OMP
 #include <omp.h>
@@ -47,7 +51,11 @@ Description
 #include "pointSet.H"
 #include "IOdictionary.H"
 #include "objectRegistry.H"
+#ifdef BLUECFD
+#include "Time.T.H"
+#else
 #include "Time.H"
+#endif
 # endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

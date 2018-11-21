@@ -27,8 +27,16 @@ Description
 
 #include "meshSurfaceEngine.H"
 #include "demandDrivenData.H"
+#ifdef BLUECFD
+#include "Map.T.H"
+#else
 #include "Map.H"
+#endif
+#ifdef BLUECFD
+#include "HashSet.T.H"
+#else
 #include "HashSet.H"
+#endif
 #include "helperFunctionsPar.H"
 
 #include <map>

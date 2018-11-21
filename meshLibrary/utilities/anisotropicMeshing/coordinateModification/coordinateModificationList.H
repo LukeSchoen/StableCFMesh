@@ -35,7 +35,11 @@ SourceFiles
 #define coordinateModificationList_H
 
 #include "coordinateModification.H"
+#ifdef BLUECFD
+#include "PtrList.T.H"
+#else
 #include "PtrList.H"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

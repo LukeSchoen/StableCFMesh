@@ -35,7 +35,11 @@ SourceFiles
 #define matrix2D_H
 
 #include "scalar.H"
+#ifdef BLUECFD
+#include "FixedList.T.H"
+#else
 #include "FixedList.H"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

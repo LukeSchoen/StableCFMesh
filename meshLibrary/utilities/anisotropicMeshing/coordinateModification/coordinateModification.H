@@ -36,9 +36,17 @@ SourceFiles
 #define coordinateModification_H
 
 #include "word.H"
+#ifdef BLUECFD
+#include "point.T.H"
+#else
 #include "point.H"
+#endif
 #include "dictionary.H"
+#ifdef BLUECFD
+#include "PtrList.T.H"
+#else
 #include "PtrList.H"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

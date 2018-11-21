@@ -28,7 +28,11 @@ Description
 #include "surfaceMorpherCells.H"
 #include "demandDrivenData.H"
 #include "helperFunctions.H"
+#ifdef BLUECFD
+#include "HashSet.T.H"
+#else
 #include "HashSet.H"
+#endif
 
 //#define DEBUGMorph
 

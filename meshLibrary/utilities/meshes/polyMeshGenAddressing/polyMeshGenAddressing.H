@@ -53,9 +53,17 @@ SourceFiles
 #include "edgeList.H"
 #include "polyMeshGenCells.H"
 #include "boolList.H"
+#ifdef BLUECFD
+#include "HashSet.T.H"
+#else
 #include "HashSet.H"
+#endif
 #include "DynList.H"
+#ifdef BLUECFD
+#include "Map.T.H"
+#else
 #include "Map.H"
+#endif
 #include "VRWGraph.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

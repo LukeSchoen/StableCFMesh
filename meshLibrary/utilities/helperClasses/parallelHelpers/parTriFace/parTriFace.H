@@ -36,7 +36,11 @@ SourceFiles
 #define parTriFace_H
 
 #include "label.H"
+#ifdef BLUECFD
+#include "point.T.H"
+#else
 #include "point.H"
+#endif
 #include "triangle.H"
 #include "contiguous.H"
 

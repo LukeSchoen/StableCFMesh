@@ -38,7 +38,11 @@ Author
 #define XMLtag_H
 
 #include "OStringStream.H"
+#ifdef BLUECFD
+#include "HashTable.T.H"
+#else
 #include "HashTable.H"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

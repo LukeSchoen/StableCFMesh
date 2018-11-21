@@ -38,7 +38,11 @@ SourceFiles
 #define meshSurfaceCheckInvertedVertices_H
 
 #include "polyMeshGenModifier.H"
+#ifdef BLUECFD
+#include "HashSet.T.H"
+#else
 #include "HashSet.H"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

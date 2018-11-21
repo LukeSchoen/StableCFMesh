@@ -33,7 +33,11 @@ Description
 //#define DEBUGMorph
 
 # ifdef DEBUGMorph
+#ifdef BLUECFD
+#include "HashSet.T.H"
+#else
 #include "HashSet.H"
+#endif
 # endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

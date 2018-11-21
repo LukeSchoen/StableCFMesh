@@ -32,9 +32,17 @@ Description
 #ifndef IOLongListInstances_H
 #define IOLongListInstances_H
 
+#ifdef BLUECFD
+#include "face.T.H"
+#else
 #include "face.H"
+#endif
 #include "cell.H"
+#ifdef BLUECFD
+#include "point.T.H"
+#else
 #include "point.H"
+#endif
 #include "IOLongList.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

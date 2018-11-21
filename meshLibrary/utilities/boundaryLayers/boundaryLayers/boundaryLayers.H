@@ -40,7 +40,11 @@ SourceFiles
 #include "meshSurfacePartitioner.H"
 #include "DynList.H"
 #include "labelLongList.H"
+#ifdef BLUECFD
+#include "Map.T.H"
+#else
 #include "Map.H"
+#endif
 #include "labelPair.H"
 
 #include <map>

@@ -36,7 +36,11 @@ SourceFiles
 #define sphereRefinement_H
 
 #include "objectRefinement.H"
+#ifdef BLUECFD
+#include "point.T.H"
+#else
 #include "point.H"
+#endif
 #include "typeInfo.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

@@ -28,7 +28,11 @@ Description
 #include "refineBoundaryLayers.H"
 #include "meshSurfaceEngine.H"
 #include "demandDrivenData.H"
+#ifdef BLUECFD
+#include "FixedList.T.H"
+#else
 #include "FixedList.H"
+#endif
 #include "helperFunctions.H"
 
 //#define DEBUGLayer

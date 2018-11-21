@@ -37,7 +37,11 @@ SourceFiles
 #define surfaceMeshGeometryModification_H
 
 #include "coordinateModification.H"
+#ifdef BLUECFD
+#include "point.T.H"
+#else
 #include "point.H"
+#endif
 #include "typeInfo.H"
 #include "coordinateModifier.H"
 

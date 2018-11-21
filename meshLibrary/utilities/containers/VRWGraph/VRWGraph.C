@@ -24,7 +24,11 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "VRWGraph.H"
+#ifdef BLUECFD
+#include "token.T.H"
+#else
 #include "token.H"
+#endif
 #include "labelList.H"
 
 // * * * * * * * * * * * * * * * IOstream Operators  * * * * * * * * * * * * //

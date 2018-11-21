@@ -27,9 +27,21 @@ Description
 
 #include "boundaryPatchBase.H"
 #include "Ostream.H"
+#ifdef BLUECFD
+#include "Istream.T.H"
+#else
 #include "Istream.H"
+#endif
+#ifdef BLUECFD
+#include "token.T.H"
+#else
 #include "token.H"
+#endif
+#ifdef BLUECFD
+#include "IOPtrList.T.H"
+#else
 #include "IOPtrList.H"
+#endif
 #include "dictionary.H"
 
 namespace Foam

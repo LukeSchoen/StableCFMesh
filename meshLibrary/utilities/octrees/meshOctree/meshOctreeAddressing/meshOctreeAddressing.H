@@ -39,10 +39,18 @@ SourceFiles
 #include "FRWGraph.H"
 #include "VRWGraph.H"
 #include "meshOctreeCubeCoordinates.H"
+#ifdef BLUECFD
+#include "face.T.H"
+#else
 #include "face.H"
+#endif
 #include "edge.H"
 #include "DynList.H"
+#ifdef BLUECFD
+#include "Map.T.H"
+#else
 #include "Map.H"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

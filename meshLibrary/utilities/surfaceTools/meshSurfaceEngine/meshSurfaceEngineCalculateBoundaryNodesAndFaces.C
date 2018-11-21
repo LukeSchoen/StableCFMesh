@@ -31,7 +31,11 @@ Description
 #include "helperFunctions.H"
 #include "VRWGraphSMPModifier.H"
 #include "labelledPoint.H"
+#ifdef BLUECFD
+#include "HashSet.T.H"
+#else
 #include "HashSet.H"
+#endif
 
 #include <map>
 #include <set>

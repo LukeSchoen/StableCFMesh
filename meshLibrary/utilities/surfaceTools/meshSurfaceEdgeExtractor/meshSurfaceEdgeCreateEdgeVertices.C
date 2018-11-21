@@ -29,7 +29,11 @@ Description
 #include "polyMeshGenAddressing.H"
 #include "meshSurfaceEdgeExtractor.H"
 #include "meshOctree.H"
+#ifdef BLUECFD
+#include "Map.T.H"
+#else
 #include "Map.H"
+#endif
 
 #define DEBUGMapping
 

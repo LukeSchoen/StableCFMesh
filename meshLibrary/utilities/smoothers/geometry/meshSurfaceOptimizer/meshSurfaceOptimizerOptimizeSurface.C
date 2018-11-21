@@ -38,7 +38,11 @@ Description
 #include "polyMeshGenAddressing.H"
 #include "polyMeshGenChecks.H"
 #include "labelledPoint.H"
+#ifdef BLUECFD
+#include "FIFOStack.T.H"
+#else
 #include "FIFOStack.H"
+#endif
 
 #include <map>
 #include <stdexcept>

@@ -27,7 +27,11 @@ Description
 
 #include "sortEdgesIntoChains.H"
 #include "helperFunctions.H"
+#ifdef BLUECFD
+#include "Map.T.H"
+#else
 #include "Map.H"
+#endif
 
 //#define DEBUGSort
 

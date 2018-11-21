@@ -35,9 +35,17 @@ SourceFiles
 #define helperFunctionsTopologyManipulation_H
 
 #include "DynList.H"
+#ifdef BLUECFD
+#include "face.T.H"
+#else
 #include "face.H"
+#endif
 #include "boolList.H"
+#ifdef BLUECFD
+#include "HashSet.T.H"
+#else
 #include "HashSet.H"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

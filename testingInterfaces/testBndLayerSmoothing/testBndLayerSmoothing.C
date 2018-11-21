@@ -34,7 +34,11 @@ Description
 #include "meshOptimizer.H"
 #include "boundaryLayers.H"
 #include "refineBoundaryLayers.H"
+#ifdef BLUECFD
+#include "Time.T.H"
+#else
 #include "Time.H"
+#endif
 #include "polyMeshGen.H"
 #include "meshSurfaceEngine.H"
 #include "helperFunctions.H"
@@ -44,7 +48,11 @@ Description
 #include "boundaryLayerOptimisation.H"
 #include "extrudeLayer.H"
 #include "polyMeshGenChecks.H"
+#ifdef BLUECFD
+#include "HashSet.T.H"
+#else
 #include "HashSet.H"
+#endif
 
 using namespace Foam;
 

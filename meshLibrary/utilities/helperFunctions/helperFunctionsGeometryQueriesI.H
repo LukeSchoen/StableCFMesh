@@ -33,11 +33,23 @@ Description
 #include "boolList.H"
 #include "triSurf.H"
 #include "matrix3D.H"
+#ifdef BLUECFD
+#include "HashSet.T.H"
+#else
 #include "HashSet.H"
+#endif
 #include "tetrahedron.H"
 #include "boundBox.H"
+#ifdef BLUECFD
+#include "Pair.T.H"
+#else
 #include "Pair.H"
+#endif
+#ifdef BLUECFD
+#include "Map.T.H"
+#else
 #include "Map.H"
+#endif
 
 namespace Foam
 {

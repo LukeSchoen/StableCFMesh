@@ -32,7 +32,11 @@ Description
 #include "polyMeshGenAddressing.H"
 #include "polyMeshGenChecks.H"
 #include "partTetMesh.H"
+#ifdef BLUECFD
+#include "HashSet.T.H"
+#else
 #include "HashSet.H"
+#endif
 
 #include "tetMeshOptimisation.H"
 #include "boundaryLayerOptimisation.H"

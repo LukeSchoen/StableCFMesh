@@ -40,9 +40,17 @@ SourceFiles
 #include "VRWGraph.H"
 #include "DynList.H"
 #include "partTet.H"
+#ifdef BLUECFD
+#include "HashSet.T.H"
+#else
 #include "HashSet.H"
+#endif
 #include "labelledPoint.H"
+#ifdef BLUECFD
+#include "Map.T.H"
+#else
 #include "Map.H"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

@@ -27,7 +27,11 @@ Description
 
 #include "triSurfFacets.H"
 #include "pointIOField.H"
+#ifdef BLUECFD
+#include "IOobjectList.T.H"
+#else
 #include "IOobjectList.H"
+#endif
 #include "pointSet.H"
 #include "stringListOps.H"
 

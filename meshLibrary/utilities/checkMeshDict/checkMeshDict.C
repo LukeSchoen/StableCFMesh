@@ -27,7 +27,11 @@ Description
 
 #include "checkMeshDict.H"
 #include "patchRefinementList.H"
+#ifdef BLUECFD
+#include "PtrList.T.H"
+#else
 #include "PtrList.H"
+#endif
 #include "LongList.H"
 #include "objectRefinement.H"
 #include "coordinateModification.H"

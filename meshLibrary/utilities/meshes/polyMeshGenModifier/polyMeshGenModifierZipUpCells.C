@@ -27,7 +27,11 @@ Description
 
 #include "polyMeshGenModifier.H"
 #include "demandDrivenData.H"
+#ifdef BLUECFD
+#include "HashSet.T.H"
+#else
 #include "HashSet.H"
+#endif
 #include "boolList.H"
 
 //#define DEBUG_ZIPUP

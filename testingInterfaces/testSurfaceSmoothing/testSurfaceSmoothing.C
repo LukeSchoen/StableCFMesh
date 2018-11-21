@@ -27,7 +27,11 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "argList.H"
+#ifdef BLUECFD
+#include "Time.T.H"
+#else
 #include "Time.H"
+#endif
 #include "polyMeshGenModifier.H"
 #include "meshSurfaceOptimizer.H"
 #include "triSurf.H"

@@ -29,7 +29,11 @@ Description
 #include "helperFunctionsPar.H"
 #include "DynList.H"
 #include "labelPair.H"
+#ifdef BLUECFD
+#include "HashSet.T.H"
+#else
 #include "HashSet.H"
+#endif
 
 # ifdef USE_OMP
 #include <omp.h>

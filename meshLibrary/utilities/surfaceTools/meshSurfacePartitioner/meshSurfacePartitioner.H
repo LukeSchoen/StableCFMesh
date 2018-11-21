@@ -37,7 +37,11 @@ SourceFiles
 
 #include "meshSurfaceEngine.H"
 #include "VRWGraph.H"
+#ifdef BLUECFD
+#include "HashSet.T.H"
+#else
 #include "HashSet.H"
+#endif
 
 #include <map>
 

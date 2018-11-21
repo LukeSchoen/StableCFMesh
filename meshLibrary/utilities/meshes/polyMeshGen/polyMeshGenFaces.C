@@ -27,8 +27,16 @@ Description
 
 #include "polyMeshGenFaces.H"
 #include "faceIOList.H"
+#ifdef BLUECFD
+#include "IOPtrList.T.H"
+#else
 #include "IOPtrList.H"
+#endif
+#ifdef BLUECFD
+#include "IOobjectList.T.H"
+#else
 #include "IOobjectList.H"
+#endif
 #include "faceSet.H"
 #include "demandDrivenData.H"
 #include "stringListOps.H"

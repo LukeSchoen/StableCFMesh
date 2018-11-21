@@ -29,9 +29,17 @@ Description
 #include "matrix3D.H"
 #include "quadricFitting.H"
 #include "helperFunctions.H"
+#ifdef BLUECFD
+#include "HashSet.T.H"
+#else
 #include "HashSet.H"
+#endif
 #include "boolList.H"
+#ifdef BLUECFD
+#include "Map.T.H"
+#else
 #include "Map.H"
+#endif
 #include "DynList.H"
 
 #include "OFstream.H"

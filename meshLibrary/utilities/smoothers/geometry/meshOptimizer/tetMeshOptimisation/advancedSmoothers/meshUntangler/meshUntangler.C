@@ -32,7 +32,11 @@ Description
 //#define DEBUGSmooth
 
 #ifdef DEBUGSmooth
+#ifdef BLUECFD
+#include "Time.T.H"
+#else
 #include "Time.H"
+#endif
 #include "objectRegistry.H"
 #endif
 

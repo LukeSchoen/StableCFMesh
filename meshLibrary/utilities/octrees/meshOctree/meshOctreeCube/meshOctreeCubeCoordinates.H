@@ -37,7 +37,11 @@ SourceFiles
 
 #include "label.H"
 #include "direction.H"
+#ifdef BLUECFD
+#include "FixedList.T.H"
+#else
 #include "FixedList.H"
+#endif
 #include "boundBox.H"
 #include "contiguous.H"
 

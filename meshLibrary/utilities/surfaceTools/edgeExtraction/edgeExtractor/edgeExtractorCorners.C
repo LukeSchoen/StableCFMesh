@@ -40,7 +40,11 @@ Description
 #include "labelledScalar.H"
 #include "labelledPoint.H"
 #include "refLabelledPoint.H"
+#ifdef BLUECFD
+#include "HashSet.T.H"
+#else
 #include "HashSet.H"
+#endif
 #include "triSurfacePartitioner.H"
 #include "triSurfaceClassifyEdges.H"
 

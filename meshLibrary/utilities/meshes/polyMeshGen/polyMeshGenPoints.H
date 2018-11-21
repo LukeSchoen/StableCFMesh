@@ -40,7 +40,11 @@ SourceFiles
 # ifdef ExtendSpecific
 #include "foamTime.H"
 # else
+#ifdef BLUECFD
+#include "Time.T.H"
+#else
 #include "Time.H"
+#endif
 # endif
 #include "meshSubset.H"
 #include "pointFieldPMG.H"

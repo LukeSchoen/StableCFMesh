@@ -7,7 +7,7 @@ ifeq (OpenFOAM,$(findstring OpenFOAM,$(WM_PROJECT)))
             CFMESH_LIBS = -lmeshTools -ltriSurface -lfiniteVolume -ledgeMesh
         endif
     else
-        VER := $(shell expr `echo $(WM_PROJECT_VERSION)` \>= 5.0)
+        VER := $(shell expr `echo $(WM_PROJECT_VERSION)` \>= 5)
         ifeq ($(VER), 1)
             CFMESH_LIBS = -lmeshTools -ltriSurface -lfiniteVolume
         else
@@ -36,8 +36,12 @@ ifeq ($(WM_PROJECT), foam)
     endif
 endif
 
+ifdef BLUECFDPATH
+    BLUECFD = -DBLUECFD
+endif
+
 EXE_INC = \
-    $(CFMESH_MACROS) \
+    $(CFMESH_MACROS) $(BLUECFD) \
     -I$(LIB_SRC)/triSurface/lnInclude \
     -I$(LIB_SRC)/surfMesh/lnInclude \
     -I$(LIB_SRC)/meshTools/lnInclude \

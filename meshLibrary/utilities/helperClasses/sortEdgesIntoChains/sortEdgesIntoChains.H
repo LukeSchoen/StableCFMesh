@@ -38,7 +38,11 @@ SourceFiles
 #include "DynList.H"
 #include "labelList.H"
 #include "edge.H"
+#ifdef BLUECFD
+#include "Map.T.H"
+#else
 #include "Map.H"
+#endif
 
 namespace Foam
 {

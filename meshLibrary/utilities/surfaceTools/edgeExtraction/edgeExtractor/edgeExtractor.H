@@ -44,7 +44,11 @@ SourceFiles
 #include "boolList.H"
 #include "labelledPoint.H"
 #include "DynList.H"
+#ifdef BLUECFD
+#include "Map.T.H"
+#else
 #include "Map.H"
+#endif
 
 namespace Foam
 {

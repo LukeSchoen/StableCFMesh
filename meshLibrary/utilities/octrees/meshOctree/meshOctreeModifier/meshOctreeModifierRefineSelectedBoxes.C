@@ -27,7 +27,11 @@ Description
 
 #include "meshOctreeModifier.H"
 #include "triSurf.H"
+#ifdef BLUECFD
+#include "HashSet.T.H"
+#else
 #include "HashSet.H"
+#endif
 #include "helperFunctions.H"
 #include "meshOctreeCubeCoordinatesScalar.H"
 

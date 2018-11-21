@@ -37,7 +37,11 @@ SourceFiles
 
 #include "pointField.H"
 #include "edge.H"
+#ifdef BLUECFD
+#include "FixedList.T.H"
+#else
 #include "FixedList.H"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

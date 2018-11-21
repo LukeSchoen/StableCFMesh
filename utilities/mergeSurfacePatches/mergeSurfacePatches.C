@@ -35,7 +35,11 @@ Author
 #include "triSurf.H"
 #include "triSurfModifier.H"
 #include "demandDrivenData.H"
+#ifdef BLUECFD
+#include "Pair.T.H"
+#else
 #include "Pair.H"
+#endif
 
 using namespace Foam;
 

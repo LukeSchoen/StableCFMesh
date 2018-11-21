@@ -39,10 +39,18 @@ SourceFiles
 #include "labelLongList.H"
 #include "VRWGraph.H"
 #include "DynList.H"
+#ifdef BLUECFD
+#include "HashSet.T.H"
+#else
 #include "HashSet.H"
+#endif
 #include "labelledPoint.H"
 #include "triSurf.H"
+#ifdef BLUECFD
+#include "Map.T.H"
+#else
 #include "Map.H"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

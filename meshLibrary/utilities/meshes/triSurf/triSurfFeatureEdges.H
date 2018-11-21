@@ -39,7 +39,11 @@ SourceFiles
 
 #include "edgeLongList.H"
 #include "meshSubset.H"
+#ifdef BLUECFD
+#include "Map.T.H"
+#else
 #include "Map.H"
+#endif
 
 namespace Foam
 {

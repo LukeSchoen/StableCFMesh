@@ -34,7 +34,11 @@ Description
 #include "VRWGraph.H"
 #include "meshOctreeModifier.H"
 #include "helperFunctions.H"
+#ifdef BLUECFD
+#include "HashSet.T.H"
+#else
 #include "HashSet.H"
+#endif
 
 #include "coordinateModifier.H"
 #include "surfaceMeshGeometryModification.H"

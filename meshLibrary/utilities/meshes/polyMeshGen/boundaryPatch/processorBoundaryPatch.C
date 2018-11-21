@@ -29,8 +29,16 @@ Description
 #include "addToRunTimeSelectionTable.H"
 #include "dictionary.H"
 #include "Ostream.H"
+#ifdef BLUECFD
+#include "Istream.T.H"
+#else
 #include "Istream.H"
+#endif
+#ifdef BLUECFD
+#include "token.T.H"
+#else
 #include "token.H"
+#endif
 
 namespace Foam
 {

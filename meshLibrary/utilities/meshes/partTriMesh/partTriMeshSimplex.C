@@ -25,7 +25,11 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
+#ifdef BLUECFD
+#include "Map.T.H"
+#else
 #include "Map.H"
+#endif
 #include "partTriMeshSimplex.H"
 
 //#define DEBUGSmooth

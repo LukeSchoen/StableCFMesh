@@ -39,7 +39,11 @@ SourceFiles
 #include "meshOctreeSlot.H"
 #include "meshOctreeCube.H"
 #include "patchRefinementList.H"
+#ifdef BLUECFD
+#include "Pair.T.H"
+#else
 #include "Pair.H"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

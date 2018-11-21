@@ -33,7 +33,11 @@ Description
 #include "VRWGraphList.H"
 
 #include "labelledPair.H"
+#ifdef BLUECFD
+#include "HashSet.T.H"
+#else
 #include "HashSet.H"
+#endif
 
 #include <map>
 

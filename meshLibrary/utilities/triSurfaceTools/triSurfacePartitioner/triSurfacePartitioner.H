@@ -38,7 +38,11 @@ SourceFiles
 
 #include "triSurf.H"
 #include "DynList.H"
+#ifdef BLUECFD
+#include "HashSet.T.H"
+#else
 #include "HashSet.H"
+#endif
 
 #include <map>
 

@@ -35,7 +35,11 @@ SourceFiles
 #define objectRefinementList_H
 
 #include "objectRefinement.H"
+#ifdef BLUECFD
+#include "PtrList.T.H"
+#else
 #include "PtrList.H"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

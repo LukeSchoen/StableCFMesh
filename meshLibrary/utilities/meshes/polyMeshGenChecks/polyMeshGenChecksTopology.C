@@ -26,7 +26,11 @@ License
 #include "polyMeshGenChecks.H"
 #include "polyMeshGenAddressing.H"
 #include "cell.H"
+#ifdef BLUECFD
+#include "Map.T.H"
+#else
 #include "Map.H"
+#endif
 
 # ifdef USE_OMP
 #include <omp.h>

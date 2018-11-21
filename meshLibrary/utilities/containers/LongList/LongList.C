@@ -25,7 +25,11 @@ License
 
 #include "LongList.H"
 #include "Ostream.H"
+#ifdef BLUECFD
+#include "token.T.H"
+#else
 #include "token.H"
+#endif
 
 // * * * * * * * * * * * * * * * IOstream Operators  * * * * * * * * * * * * //
 

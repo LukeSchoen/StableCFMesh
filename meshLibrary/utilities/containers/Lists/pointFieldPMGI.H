@@ -29,7 +29,11 @@ Description
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+#ifdef BLUECFD
+#include "SubList.T.H"
+#else
 #include "SubList.H"
+#endif
 
 namespace Foam
 {

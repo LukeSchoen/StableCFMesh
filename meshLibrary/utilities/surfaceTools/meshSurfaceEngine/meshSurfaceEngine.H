@@ -36,12 +36,20 @@ SourceFiles
 #define meshSurfaceEngine_H
 
 #include "polyMeshGenModifier.H"
+#ifdef BLUECFD
+#include "SubList.T.H"
+#else
 #include "SubList.H"
+#endif
 #include "boolList.H"
 #include "DynList.H"
 #include "VRWGraph.H"
 #include "triangle.H"
+#ifdef BLUECFD
+#include "Map.T.H"
+#else
 #include "Map.H"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

@@ -27,8 +27,16 @@ Description
 
 #include "boundaryPatch.H"
 #include "Ostream.H"
+#ifdef BLUECFD
+#include "Istream.T.H"
+#else
 #include "Istream.H"
+#endif
+#ifdef BLUECFD
+#include "token.T.H"
+#else
 #include "token.H"
+#endif
 #include "dictionary.H"
 #include "addToRunTimeSelectionTable.H"
 

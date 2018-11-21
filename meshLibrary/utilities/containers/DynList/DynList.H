@@ -41,7 +41,11 @@ SourceFiles
 #ifndef DynList_H
 #define DynList_H
 
+#ifdef BLUECFD
+#include "UList.T.H"
+#else
 #include "UList.H"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

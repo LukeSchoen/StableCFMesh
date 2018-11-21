@@ -29,8 +29,16 @@ License
 #include "tetrahedron.H"
 #include "cell.H"
 #include "mathematicalConstants.H"
+#ifdef BLUECFD
+#include "ListOps.T.H"
+#else
 #include "ListOps.H"
+#endif
+#ifdef BLUECFD
+#include "Map.T.H"
+#else
 #include "Map.H"
+#endif
 
 # ifdef USE_OMP
 #include <omp.h>

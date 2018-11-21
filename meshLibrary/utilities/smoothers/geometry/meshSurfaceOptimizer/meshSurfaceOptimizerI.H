@@ -28,7 +28,11 @@ Description
 #include "demandDrivenData.H"
 #include "meshSurfaceOptimizer.H"
 #include "plane.H"
+#ifdef BLUECFD
+#include "Map.T.H"
+#else
 #include "Map.H"
+#endif
 #include "surfaceOptimizer.H"
 #include "helperFunctions.H"
 #include "partTriMeshSimplex.H"
