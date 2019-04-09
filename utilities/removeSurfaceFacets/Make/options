@@ -1,35 +1,42 @@
 ifeq (OpenFOAM,$(findstring OpenFOAM,$(WM_PROJECT)))
-    ifeq (v,$(WM_PROJECT_VERSION:v%=v))
-        VER := $(shell expr `echo $(WM_PROJECT_VERSION)` \>= v1706)
-        ifeq ($(VER), 1)
+    MAJ_VER := $(WM_PROJECT_VERSION:v%=%)
+    MAJ_VER := $(subst ., ,$(MAJ_VER))
+    MAJ_VER := $(word 1,$(MAJ_VER))
+
+    ifeq ($(shell expr $(MAJ_VER) \>= 1000), 1)
+        ifeq ($(shell expr $(MAJ_VER) \>= 1706), 1)
             CFMESH_LIBS = -lmeshTools -lsurfMesh -lfiniteVolume
         else
             CFMESH_LIBS = -lmeshTools -ltriSurface -lfiniteVolume -ledgeMesh
         endif
     else
-        VER := $(shell expr `echo $(WM_PROJECT_VERSION)` \>= 5)
-        ifeq ($(VER), 1)
+        ifeq ($(shell expr $(MAJ_VER) \>= 5), 1)
             CFMESH_LIBS = -lmeshTools -ltriSurface -lfiniteVolume
         else
             CFMESH_LIBS = -lmeshTools -ltriSurface -lfiniteVolume -ledgeMesh
         endif
     endif
+
+    ifeq (OpenFOAM-dev,$(findstring OpenFOAM-dev,$(WM_PROJECT_DIR)))
+        CFMESH_LIBS = -lmeshTools -ltriSurface -lfiniteVolume 
+    endif    
+    ifeq (OpenFOAM-plus,$(findstring OPENFOAM-plus,$(WM_PROJECT_DIR)))
+            CFMESH_LIBS = -lmeshTools -lsurfMesh -lfiniteVolume
+    endif
+
     ifeq (Int,$(findstring Int,$(WM_LABEL_OPTION)))
         CFMESH_MACROS = -DNoSizeType
     else
         CFMESH_MACROS =
     endif
 
-    ifeq (OpenFOAM-dev,$(findstring OpenFOAM-dev,$(WM_PROJECT_DIR)))
-        CFMESH_LIBS = -lmeshTools -ltriSurface -lfiniteVolume 
-    endif
 endif
 
 ifeq ($(WM_PROJECT), foam)
     VER := $(shell expr `echo $(WM_PROJECT_VERSION)` \>= 3.2)
     ifeq ($(VER), 1)
         CFMESH_LIBS = -lmeshTools -lfiniteVolume -ledgeMesh
-        CFMESH_MACROS = -DExtendSpecific -std=c++11
+        CFMESH_MACROS = -DExtendSpecific
     else
         CFMESH_LIBS = -lmeshTools -ltriSurface -lfiniteVolume -ledgeMesh
         CFMESH_MACROS =
