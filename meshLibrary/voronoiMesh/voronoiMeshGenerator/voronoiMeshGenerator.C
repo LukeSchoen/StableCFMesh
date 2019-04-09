@@ -373,7 +373,7 @@ voronoiMeshGenerator::voronoiMeshGenerator(const Time& time)
         if( true )
             checkMeshDict cmd(meshDict_);
 
-        const fileName surfaceFile = meshDict_.lookup("surfaceFile");
+        const fileName surfaceFile(meshDict_.lookup("surfaceFile"));
 
         surfacePtr_ = new triSurf(runTime_.path()/surfaceFile);
 
