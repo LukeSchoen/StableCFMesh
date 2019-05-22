@@ -3,7 +3,7 @@
   \\      /  F ield         | cfMesh: A library for mesh generation
    \\    /   O peration     | Author: Franjo Juretic (franjo.juretic@c-fields.com)
     \\  /    A nd           | Copyright (C) Creative Fields, Ltd.
-     \\/     M anipulation  | Copyright (C) Oliver Oxtoby <oliveroxtoby@gmail.com>
+     \\/     M anipulation  | Copyright (C) 2019 Oliver Oxtoby
 -------------------------------------------------------------------------------
 License
     This file is part of cfMesh.

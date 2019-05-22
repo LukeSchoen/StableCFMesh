@@ -1,9 +1,9 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | cfMesh: A library for mesh generation
-   \\    /   O peration     |
-    \\  /    A nd           | Author: Franjo Juretic (franjo.juretic@c-fields.com)
-     \\/     M anipulation  | Copyright (C) Creative Fields, Ltd.
+   \\    /   O peration     | Author: Franjo Juretic (franjo.juretic@c-fields.com)
+    \\  /    A nd           | Copyright (C) Creative Fields, Ltd.
+     \\/     M anipulation  | Copyright (C) 2017 Oliver Oxtoby
 -------------------------------------------------------------------------------
 License
     This file is part of cfMesh.
