@@ -7,3 +7,5 @@ cfMesh*
 log
 log.*
 *~
+
+.vscode/ipch
