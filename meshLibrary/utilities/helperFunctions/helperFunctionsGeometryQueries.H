@@ -229,6 +229,14 @@ namespace help
         const point&
     );
 
+    //- calculate area vector of triangle formed by three points
+    inline vector triangleAreaNormal
+    (
+        const point& a, 
+        const point& b, 
+        const point& c
+    );
+
     //- find the minimiser point from a point and the given planes
     //- returns true if the minimizer exists
     inline bool findMinimizerPoint

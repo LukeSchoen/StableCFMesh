@@ -382,7 +382,6 @@ cartesianMeshGenerator::cartesianMeshGenerator(const Time& time)
     }
     catch(const std::string& message)
     {
-        Info << "Here" << endl;
         Info << message << endl;
     }
     catch(...)

@@ -181,12 +181,12 @@ scalar meshSurfaceMapper::faceMetricInPatch
     forAll(bf, pI)
     {
         projArea +=
-            triPointRef
+            help::triangleAreaNormal
             (
                 projPoints[pI],
                 projPoints[bf.fcIndex(pI)],
                 projCentre
-            ).normal();
+            );
     }
 
     return magSqr(centre - projCentre) + mag(mag(projArea) - mag(area));

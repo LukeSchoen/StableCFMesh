@@ -784,6 +784,11 @@ inline point nearestPointOnTheTriangle
     return nearestPointOnTheTriangle(tri, p);
 }
 
+vector triangleAreaNormal(const point& a, const point& b, const point& c)
+{
+    return 0.5*((b - a)^(c - a));
+}
+
 inline bool findMinimizerPoint
 (
     const DynList<point>& origins,
