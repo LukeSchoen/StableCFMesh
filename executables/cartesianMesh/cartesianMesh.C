@@ -40,7 +40,18 @@ using namespace Foam;
 
 int main(int argc, char *argv[])
 {
+    argList::addBoolOption("version", "Print version information");
+
 #   include "setRootCase.H"
+
+    if (args.optionFound("version"))
+    {
+        Info<<
+#       include "../../versionInfo.H"
+            << endl;
+        return 0;
+    }
+
 #   include "createTime.H"
 
     cartesianMeshGenerator cmg(runTime);
