@@ -41,9 +41,9 @@ void insideSurfaceRefinement::initialiseSurfaceSearch()
 {
     closedSurface_ = triSurface(closedSurfaceFile_);
     closedSurfaceSearch_.set(new triSurfaceSearch(closedSurface_));
-    // Construct the octree now before we start searching - prevent an
-    // OpenMP race
-    closedSurfaceSearch_->tree();
+    // Force it to construct the octree and initialise volume types now before 
+    // we start searching - prevent an OpenMP race
+    closedSurfaceSearch_->tree().getVolumeType(point(0,0,0));
 }
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
