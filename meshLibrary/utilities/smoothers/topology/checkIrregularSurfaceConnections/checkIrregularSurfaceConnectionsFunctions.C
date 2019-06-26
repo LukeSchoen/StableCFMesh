@@ -163,7 +163,8 @@ bool checkIrregularSurfaceConnections::checkAndFixCellGroupsAtBndVertices
                     {
                         const point p = points[pointI];
                         points.append(p);
-                        pointLevel.append(pointLevel[pointI]);
+                        const label level = pointLevel[pointI];
+                        pointLevel.append(level);
                     }
                 }
             }
