@@ -28,6 +28,7 @@ Description
 #include "triangle.H"
 #include "tetrahedron.H"
 #include "IOstreams.H"
+#include "helperFunctionsGeometryQueries.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -139,15 +140,13 @@ inline vector partTet::Sc(const PointField& points) const
 template<class PointField>
 inline vector partTet::Sd(const PointField& points) const
 {
-    triangle<point, point> tria
-    (
-        points[data_[0]],
-        points[data_[2]],
-        points[data_[1]]
-    );
-
-    return tria.normal();
-    //return triangle<point, point>(a_, c_, b_).normal();
+    return 
+        help::triangleAreaNormal
+        (
+            points[data_[0]],
+            points[data_[2]],
+            points[data_[1]]
+        );
 }
 
 template<class PointField>

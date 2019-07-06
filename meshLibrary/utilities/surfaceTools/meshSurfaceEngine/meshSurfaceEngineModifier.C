@@ -31,6 +31,7 @@ Description
 
 #include "labelledPoint.H"
 #include "helperFunctionsPar.H"
+#include "helperFunctionsGeometryQueries.H"
 
 // #define DEBUGSearch
 
@@ -107,7 +108,7 @@ void meshSurfaceEngineModifier::moveBoundaryVertex
         {
             const label bfI = pFaces(bpI, pfI);
 
-            faceNormals[bfI] = bFaces[bfI].normal(points);
+            faceNormals[bfI] = help::faceAreaNormal(bFaces[bfI], points);
         }
     }
 
@@ -277,7 +278,7 @@ void meshSurfaceEngineModifier::updateGeometry
         forAll(updateFaces, bfI)
         {
             if( updateFaces[bfI] )
-                faceNormals[bfI] = bFaces[bfI].normal(points);
+                faceNormals[bfI] = help::faceAreaNormal(bFaces[bfI], points);
         }
     }
 

@@ -28,6 +28,7 @@ Description
 #include "triSurfAddressing.H"
 #include "VRWGraphSMPModifier.H"
 #include "demandDrivenData.H"
+#include "helperFunctionsGeometryQueries.H"
 
 #include <set>
 
@@ -289,7 +290,7 @@ void triSurfAddressing::calculateFacetNormals() const
     # endif
     forAll(facets_, fI)
     {
-        vector v = facets_[fI].normal(points_);
+        vector v = help::triangleAreaNormal(facets_[fI], points_);
         v /= (mag(v) + VSMALL);
         (*facetNormalsPtr_)[fI] = v;
     }

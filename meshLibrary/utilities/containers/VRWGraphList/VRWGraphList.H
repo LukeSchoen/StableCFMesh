@@ -45,6 +45,11 @@ SourceFiles
 namespace Foam
 {
 
+class VRWGraphList;
+
+// Forward declaration of friend function
+Ostream& operator<<(Ostream&, const VRWGraphList&);
+
 /*---------------------------------------------------------------------------*\
                            Class VRWGraphList Declaration
 \*---------------------------------------------------------------------------*/

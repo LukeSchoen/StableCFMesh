@@ -476,14 +476,13 @@ void tetMeshOptimisation::optimiseBoundaryVolumeOptimizer
                             if( numAppearances[beI] != 1 )
                                 continue;
 
-                            triangle<point, point> tri
-                            (
-                                pts[bEdges[beI].start()],
-                                pts[bEdges[beI].end()],
-                                points[nodeI]
-                            );
-
-                            vector n = tri.normal();
+                            vector n = 
+                                help::triangleAreaNormal
+                                (
+                                    pts[bEdges[beI].start()],
+                                    pts[bEdges[beI].end()],
+                                    points[nodeI]
+                                );
                             n /= (mag(n) + VSMALL);
 
                             nt += symm(n * n);

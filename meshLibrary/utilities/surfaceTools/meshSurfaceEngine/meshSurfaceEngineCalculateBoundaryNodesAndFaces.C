@@ -786,7 +786,7 @@ void meshSurfaceEngine::calculateFaceNormals() const
     {
         const face& bf = bFaces[bfI];
 
-        faceNormalsPtr_->operator[](bfI) = bf.normal(points);
+        faceNormalsPtr_->operator[](bfI) = help::faceAreaNormal(bf, points);
     }
 }
 

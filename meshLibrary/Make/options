@@ -10,15 +10,20 @@ ifeq (OpenFOAM,$(findstring OpenFOAM,$(WM_PROJECT)))
     MAJ_VER := $(word 1,$(MAJ_VER))
 
     ifeq ($(shell expr $(MAJ_VER) \>= 1000), 1)
-        ifeq ($(shell expr $(MAJ_VER) \>= 1706), 1)
-            CFMESH_MACROS = -DOpenCFDSpecific
+        CFMESH_MACROS = -DOpenCFDSpecific
+        ifeq ($(shell expr $(MAJ_VER) \>= 1906), 1)
+            CFMESH_MACROS += -DFOAM_VERSION_1906
+            LIBS = -lmeshTools -lsurfMesh
+        else ifeq ($(shell expr $(MAJ_VER) \>= 1706), 1)
             LIBS = -lmeshTools -lsurfMesh
         else
-            CFMESH_MACROS = -DOpenCFDSpecific
             LIBS = -lmeshTools -ltriSurface -ledgeMesh
         endif
     else
-        ifeq ($(shell expr $(MAJ_VER) \>= 5), 1)
+        ifeq ($(shell expr $(MAJ_VER) \>= 6), 1)
+            CFMESH_MACROS = -DFOAM_VERSION_6
+            LIBS = -ltriSurface -lmeshTools
+        else ifeq ($(shell expr $(MAJ_VER) \>= 5), 1)
             CFMESH_MACROS =
             LIBS = -ltriSurface -lmeshTools
         else
@@ -28,10 +33,10 @@ ifeq (OpenFOAM,$(findstring OpenFOAM,$(WM_PROJECT)))
     endif
 
     ifeq (OpenFOAM-dev,$(findstring OpenFOAM-dev,$(WM_PROJECT_DIR)))
-        CFMESH_LIBS = -lmeshTools -ltriSurface
+        CFMESH_LIBS = -DFOAM_VERSION_6 -lmeshTools -ltriSurface
     endif    
     ifeq (OpenFOAM-plus,$(findstring OPENFOAM-plus,$(WM_PROJECT_DIR)))
-            CFMESH_LIBS = -lmeshTools -lsurfMesh
+            CFMESH_LIBS = -DFOAM_VERSION_1906 -lmeshTools -lsurfMesh
     endif
 
     ifeq (Int,$(findstring Int,$(WM_LABEL_OPTION)))

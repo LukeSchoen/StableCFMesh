@@ -149,7 +149,7 @@ scalar meshSurfaceMapper::faceMetricInPatch
     const pointFieldPMG& points = surfaceEngine_.points();
 
     const point centre = bf.centre(points);
-    const vector area = bf.normal(points);
+    const vector area = help::faceAreaNormal(bf, points);
 
     point projCentre;
     scalar dSq;

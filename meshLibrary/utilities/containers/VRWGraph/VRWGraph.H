@@ -99,6 +99,11 @@ class rowElement
                            Class VRWGraph Declaration
 \*---------------------------------------------------------------------------*/
 
+class VRWGraph;
+
+// Forward declaration of friend function
+Ostream& operator<<(Ostream&, const VRWGraph&);
+
 class VRWGraph
 {
     // Private data

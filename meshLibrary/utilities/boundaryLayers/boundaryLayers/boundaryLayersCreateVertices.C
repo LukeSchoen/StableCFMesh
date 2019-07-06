@@ -160,11 +160,11 @@ point boundaryLayers::createNewVertex
 
                 if( treatPatches[patchLabel] )
                 {
-                    normal += f.normal(points);
+                    normal += help::faceAreaNormal(f, points);
                 }
                 else
                 {
-                    v += f.normal(points);
+                    v += help::faceAreaNormal(f, points);
                 }
             }
 
@@ -901,11 +901,11 @@ void boundaryLayers::createNewEdgeVerticesParallel
 
                 if( treatPatches[patchLabel] )
                 {
-                    normal[epI] += f.normal(points);
+                    normal[epI] += help::faceAreaNormal(f, points);
                 }
                 else
                 {
-                    v[epI] += f.normal(points);
+                    v[epI] += help::faceAreaNormal(f, points);
                 }
             }
         }

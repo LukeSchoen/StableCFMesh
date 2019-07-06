@@ -86,7 +86,7 @@ bool triangulateNonPlanarBaseFaces::findNonPlanarBoundaryFaces()
             );
 
             const point triCentre = tri.centre();
-            vector n = tri.normal();
+            vector n = help::triangleAreaNormal(tri);
             n /= (mag(n) + VSMALL);
 
             forAll(bf, pI)

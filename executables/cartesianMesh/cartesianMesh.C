@@ -44,7 +44,11 @@ int main(int argc, char *argv[])
 
 #   include "setRootCase.H"
 
+    #ifdef FOAM_VERSION_1906
+    if (args.found("version"))
+    #else
     if (args.optionFound("version"))
+    #endif
     {
         Info<<
 #       include "../../versionInfo.H"

@@ -717,14 +717,13 @@ bool checkMinTwist
 
                 forAll(f, fpI)
                 {
-                    const triangle<point, point> triangle
-                    (
-                        points[f[fpI]],
-                        points[f.nextLabel(fpI)],
-                        fCentres[faceI]
-                    );
-
-                    const vector triArea = triangle.normal();
+                    const vector triArea = 
+                        help::triangleAreaNormal
+                        (
+                            points[f[fpI]],
+                            points[f.nextLabel(fpI)],
+                            fCentres[faceI]
+                        );
 
                     const scalar magTri = (mag(triArea) + VSMALL);
 
@@ -774,14 +773,13 @@ bool checkMinTwist
 
             forAll(f, fpI)
             {
-                const triangle<point, point> triangle
-                (
-                    points[f[fpI]],
-                    points[f.nextLabel(fpI)],
-                    fCentres[faceI]
-                );
-
-                const vector triArea = triangle.normal();
+                const vector triArea =
+                    help::triangleAreaNormal
+                    (
+                        points[f[fpI]],
+                        points[f.nextLabel(fpI)],
+                        fCentres[faceI]
+                    );
 
                 const scalar magTri = mag(triArea);
 
@@ -862,14 +860,13 @@ bool checkMinTwist
 
                     forAll(f, fpI)
                     {
-                        const triangle<point, point> triangle
-                        (
-                            points[f[fpI]],
-                            points[f.nextLabel(fpI)],
-                            fCentres[faceI]
-                        );
-
-                        const vector triArea = triangle.normal();
+                        const vector triArea = 
+                            help::triangleAreaNormal
+                            (
+                                points[f[fpI]],
+                                points[f.nextLabel(fpI)],
+                                fCentres[faceI]
+                            );
 
                         const scalar magTri = (mag(triArea) + VSMALL);
 
@@ -1356,14 +1353,13 @@ bool checkTriangleTwist
                     if( isTwisted )
                         break;
 
-                    const triangle<point, point> tri
-                    (
-                        points[f[pI]],
-                        points[f.nextLabel(pI)],
-                        fCentres[faceI]
-                    );
-
-                    vector prevN = tri.normal();
+                    vector prevN =
+                        help::triangleAreaNormal
+                        (
+                            points[f[pI]],
+                            points[f.nextLabel(pI)],
+                            fCentres[faceI]
+                        );
 
                     const scalar magTri = mag(prevN) + VSMALL;
 
@@ -1372,14 +1368,13 @@ bool checkTriangleTwist
                     //- compare with other possible triangles
                     for(label pJ=pI+1;pJ<f.size();++pJ)
                     {
-                        const triangle<point, point> tri
-                        (
-                            points[f[pJ]],
-                            points[f.nextLabel(pJ)],
-                            fCentres[faceI]
-                        );
-
-                        vector triN = tri.normal();
+                        vector triN = 
+                            help::triangleAreaNormal
+                            (
+                                points[f[pJ]],
+                                points[f.nextLabel(pJ)],
+                                fCentres[faceI]
+                            );
 
                         scalar magTriN = mag(triN) + VSMALL;
 
@@ -2248,7 +2243,7 @@ void checkFaceSkewness
         {
             const vector d = fCentres[faceI] - centres[own[faceI]];
 
-            vector n = faces[faceI].normal(points);
+            vector n = help::faceAreaNormal(faces[faceI], points);
             const scalar magn = mag(n);
             if( magn > VSMALL )
             {

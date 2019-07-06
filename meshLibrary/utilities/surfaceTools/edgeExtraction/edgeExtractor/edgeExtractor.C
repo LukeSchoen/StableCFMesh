@@ -1037,9 +1037,10 @@ bool edgeExtractor::distributeBoundaryFacesNormalAlignment()
                 maxDSq = Foam::max(dSq, maxDSq);
 
                 //- calculate normal vectors
-                vector tn = surf[nearestTriangle].normal(sPoints);
+                vector tn = 
+                    help::triangleAreaNormal(surf[nearestTriangle], sPoints);
                 tn /= (mag(tn) + VSMALL);
-                vector fn = bf.normal(points);
+                vector fn = help::faceAreaNormal(bf, points);
                 fn /= (mag(fn) + SMALL);
 
                 //- calculate alignment

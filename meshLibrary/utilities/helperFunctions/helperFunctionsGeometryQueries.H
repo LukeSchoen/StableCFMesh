@@ -237,6 +237,26 @@ namespace help
         const point& c
     );
 
+    //- calculate area vector of triangle
+    inline vector triangleAreaNormal
+    (
+        const triangle<point, point>& tri 
+    );
+
+    //- calculate area vector of triangle
+    inline vector triangleAreaNormal
+    (
+        const labelledTri& tri, 
+        const pointField& p
+    );
+
+    //- calculate area vector of face
+    inline vector faceAreaNormal
+    (
+        const face& f,
+        const pointField& p
+    );
+
     //- find the minimiser point from a point and the given planes
     //- returns true if the minimizer exists
     inline bool findMinimizerPoint

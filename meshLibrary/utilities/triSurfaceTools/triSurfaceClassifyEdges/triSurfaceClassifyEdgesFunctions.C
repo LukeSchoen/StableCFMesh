@@ -186,7 +186,7 @@ void triSurfaceClassifyEdges::checkOrientation()
         {
             const labelledTri& tri = surf[triI];
             const point c = tri.centre(points);
-            vector n = tri.normal(points);
+            vector n = help::triangleAreaNormal(tri, points);
             const scalar magN = mag(n);
 
             if( magN < VSMALL )

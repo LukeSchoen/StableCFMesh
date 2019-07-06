@@ -334,6 +334,7 @@ polyMeshGenCells::polyMeshGenCells
         nFacesInPatch
     ),
     cells_(),
+    cellSubsets_(),
     cellLevel_
     (
         IOobject
@@ -345,7 +346,6 @@ polyMeshGenCells::polyMeshGenCells
         ),
         0
     ),
-    cellSubsets_(),
     addressingDataPtr_(NULL)
 {
     cells_ = cells;

@@ -376,7 +376,7 @@ scalar volumeOptimizer::optimiseSteepestDescent(const scalar tol)
                         points_[tet.c()]
                     );
 
-                    vector n = tri.normal();
+                    vector n = help::triangleAreaNormal(tri);
                     const scalar d = mag(n);
 
                     if( d > VSMALL )

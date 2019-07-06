@@ -435,12 +435,12 @@ inline faceList mergePatchFaces
 
         for(label nI=0;nI<(patchFaces.size()-1);nI++)
         {
-            vector n0 = patchFaces[nI].normal(polyPoints);
+            vector n0 = help::faceAreaNormal(patchFaces[nI], polyPoints);
             n0 /= mag(n0);
 
             for(label nJ=nI+1;nJ<patchFaces.size();nJ++)
             {
-                vector n1 = patchFaces[nI].normal(polyPoints);
+                vector n1 = help::faceAreaNormal(patchFaces[nI], polyPoints);
                 n1 /= mag(n1);
                 if(
                     help::shareAnEdge(patchFaces[nI], patchFaces[nJ]) &&
@@ -784,9 +784,30 @@ inline point nearestPointOnTheTriangle
     return nearestPointOnTheTriangle(tri, p);
 }
 
-vector triangleAreaNormal(const point& a, const point& b, const point& c)
+inline vector triangleAreaNormal(const point& a, const point& b, const point& c)
 {
     return 0.5*((b - a)^(c - a));
+}
+
+inline vector triangleAreaNormal(const triangle<point, point>& tri) 
+{
+    return triangleAreaNormal(tri.a(), tri.b(), tri.c());
+}
+
+inline vector triangleAreaNormal(const labelledTri& tri, const pointField& p)
+{
+    return triangleAreaNormal(p[tri[0]], p[tri[1]], p[tri[2]]);
+}
+
+inline vector faceAreaNormal(const face& f, const pointField& p)
+{
+    #if defined(FOAM_VERSION_1906)
+    return f.areaNormal(p);
+    #elif defined(FOAM_VERSION_6)
+    return f.area(p);
+    #else
+    return f.normal(p);
+    #endif
 }
 
 inline bool findMinimizerPoint
@@ -1153,14 +1174,14 @@ inline bool doTrianglesOverlap
         return false;
     }
 
-    vector n0 = tri0.normal();
+    vector n0 = help::triangleAreaNormal(tri0);
     const scalar dn0 = mag(n0);
     n0 /= (dn0 + VSMALL);
 
     if( dn0 < VSMALL )
         return false;
 
-    vector n1 = tri1.normal();
+    vector n1 = help::triangleAreaNormal(tri1);
     const scalar dn1 = mag(n1);
     n1 /= (dn1 + VSMALL);
 
@@ -1404,11 +1425,11 @@ inline bool doTrianglesIntersect
         return false;
     }
 
-    vector n0 = tri0.normal();
+    vector n0 = help::triangleAreaNormal(tri0);
     const scalar dn0 = mag(n0);
     n0 /= (dn0 + VSMALL);
 
-    vector n1 = tri1.normal();
+    vector n1 = help::triangleAreaNormal(tri1);
     const scalar dn1 = mag(n1);
     n1 /= (dn1 + VSMALL);
 
@@ -1737,7 +1758,7 @@ inline bool isFaceConvexAndOk
 {
     bool valid(true);
 
-    vector normal = f.normal(fp);
+    vector normal = help::faceAreaNormal(f, fp);
     const scalar magN = mag(normal);
 
     //- face has zero area. All points are inverted
