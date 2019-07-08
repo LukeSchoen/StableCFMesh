@@ -1,0 +1,64 @@
+ifeq (Gcc,$(findstring Gcc,$(WM_COMPILER)))
+    OMP_FLAGS = -DUSE_OMP -fopenmp
+else
+    OMP_FLAGS =
+endif
+
+ifeq (OpenFOAM,$(findstring OpenFOAM,$(WM_PROJECT)))
+    MAJ_VER := $(WM_PROJECT_VERSION:v%=%)
+    MAJ_VER := $(subst ., ,$(MAJ_VER))
+    MAJ_VER := $(word 1,$(MAJ_VER))
+
+    ifeq ($(shell expr $(MAJ_VER) \>= 1000), 1)
+        CFMESH_MACROS = -DOpenCFDSpecific
+        ifeq ($(shell expr $(MAJ_VER) \>= 1906), 1)
+            CFMESH_MACROS := $(CFMESH_MACROS) -DFOAM_VERSION_1906
+            CFMESH_LIBS = -lmeshTools -lsurfMesh
+        else ifeq ($(shell expr $(MAJ_VER) \>= 1706), 1)
+            CFMESH_LIBS = -lmeshTools -lsurfMesh
+        else
+            CFMESH_LIBS = -lmeshTools -ltriSurface -ledgeMesh
+        endif
+    else
+        ifeq ($(shell expr $(MAJ_VER) \>= 6), 1)
+            CFMESH_MACROS = -DFOAM_VERSION_6
+            CFMESH_LIBS = -ltriSurface -lmeshTools
+        else ifeq ($(shell expr $(MAJ_VER) \>= 5), 1)
+            CFMESH_MACROS =
+            CFMESH_LIBS = -ltriSurface -lmeshTools
+        else
+            CFMESH_MACROS =
+            CFMESH_LIBS = -ltriSurface -ledgeMesh -lmeshTools
+        endif
+    endif
+
+    ifeq (OpenFOAM-dev,$(findstring OpenFOAM-dev,$(WM_PROJECT_DIR)))
+        CFMESH_MACROS = -DFOAM_VERSION_6
+        CFMESH_LIBS = -lmeshTools -ltriSurface
+    endif    
+    ifeq (OpenFOAM-plus,$(findstring OPENFOAM-plus,$(WM_PROJECT_DIR)))
+        CFMESH_MACROS = -DFOAM_VERSION_1906
+        CFMESH_LIBS = -lmeshTools -lsurfMesh
+    endif
+
+    ifeq (Int,$(findstring Int,$(WM_LABEL_OPTION)))
+        CFMESH_MACROS := $(CFMESH_MACROS) -DNoSizeType
+    else
+        CFMESH_MACROS := $(CFMESH_MACROS)
+    endif
+endif
+
+ifeq ($(WM_PROJECT), foam)
+    VER := $(shell expr $(WM_PROJECT_VERSION) \>= 3.2)
+    ifeq ($(VER), 1)
+        CFMESH_MACROS = -DExtendSpecific -std=c++11
+        LIBS = -lmeshTools -ledgeMesh
+    else
+        CFMESH_MACROS =
+    endif
+endif
+
+ifdef BLUECFDPATH
+    BLUECFD = -DBLUECFD
+endif
+
