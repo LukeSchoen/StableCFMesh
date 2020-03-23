@@ -177,8 +177,11 @@ class labelledScalar
 
 //- Specify data associated with labelledScalar type is contiguous
 template<>
+#ifdef FOAM_VERSION_1912
+struct is_contiguous<labelledScalar> : std::true_type {};
+ #else
 inline bool contiguous<labelledScalar>() {return true;}
-
+#endif
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam

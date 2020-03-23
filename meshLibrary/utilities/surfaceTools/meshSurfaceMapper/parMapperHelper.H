@@ -169,7 +169,11 @@ class parMapperHelper
 
 //- Specify data associated with parMapperHelper type is contiguous
 template<>
+#ifdef FOAM_VERSION_1912
+struct is_contiguous<parMapperHelper> : std::true_type {};
+#else
 inline bool contiguous<parMapperHelper>() {return true;}
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

@@ -146,7 +146,11 @@ class parTriFace
 
 //- Specify data associated with parTriFace type is contiguous
 template<>
+#ifdef FOAM_VERSION_1912
+struct is_contiguous<parTriFace> : std::true_type {};
+ #else
 inline bool contiguous<parTriFace>() {return true;}
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

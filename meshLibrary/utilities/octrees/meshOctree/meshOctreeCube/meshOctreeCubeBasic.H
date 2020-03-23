@@ -131,9 +131,12 @@ public:
 
 //- Specify data associated with meshOctreeCubeBasic type is contiguous
 template<>
-inline bool contiguous<meshOctreeCubeBasic>() {
-    return true;
-}
+#ifdef FOAM_VERSION_1912
+struct is_contiguous<meshOctreeCubeBasic> : std::true_type {};
+ #else
+inline bool contiguous<meshOctreeCubeBasic>() {return true;}
+#endif
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

@@ -178,7 +178,11 @@ class labelledPointScalar
 
 //- Specify data associated with labelledPointScalar type is contiguous
 template<>
+#ifdef FOAM_VERSION_1912
+struct is_contiguous<labelledPointScalar> : std::true_type {};
+#else
 inline bool contiguous<labelledPointScalar>() {return true;}
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

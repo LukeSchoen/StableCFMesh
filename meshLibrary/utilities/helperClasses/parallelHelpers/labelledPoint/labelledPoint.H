@@ -158,8 +158,12 @@ class labelledPoint
 };
 
 //- Specify data associated with labelledPoint type is contiguous
-template<>
+template<> 
+#ifdef FOAM_VERSION_1912
+struct is_contiguous<labelledPoint> : std::true_type {};
+ #else
 inline bool contiguous<labelledPoint>() {return true;}
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

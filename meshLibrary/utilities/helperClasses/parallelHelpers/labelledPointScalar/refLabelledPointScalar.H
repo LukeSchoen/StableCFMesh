@@ -143,7 +143,11 @@ class refLabelledPointScalar
 
 //- Specify data associated with refLabelledPointScalar type is contiguous
 template<>
+#ifdef FOAM_VERSION_1912
+struct is_contiguous<refLabelledPointScalar> : std::true_type {};
+#else
 inline bool contiguous<refLabelledPointScalar>() {return true;}
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

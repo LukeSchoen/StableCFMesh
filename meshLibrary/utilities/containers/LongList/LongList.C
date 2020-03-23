@@ -70,7 +70,11 @@ Foam::Ostream& Foam::operator<<
     const Foam::LongList<T, Offset>& DL
 )
 {
+#ifdef FOAM_VERSION_1912
+    if( (os.format() == IOstream::ASCII) || !is_contiguous<T>::value )
+#else
     if( (os.format() == IOstream::ASCII) || !contiguous<T>() )
+#endif
     {
         if( DL.size() < 15 )
         {
@@ -163,7 +167,11 @@ Foam::Istream& Foam::operator>>
         DL.setSize(size);
 
         // Read list contents depending on data format
+#ifdef FOAM_VERSION_1912
+        if( (is.format() == IOstream::ASCII) || !is_contiguous<T>::value )
+#else
         if( (is.format() == IOstream::ASCII) || !contiguous<T>() )
+#endif
         {
             // Read beginning of contents
             char listDelimiter = is.readBeginList("List");
@@ -303,7 +311,11 @@ void Foam::LongList<T, Offset>::appendFromStream(Istream& is)
         setSize(origSize+size);
 
         // Read list contents depending on data format
+#ifdef FOAM_VERSION_1912
+        if( (is.format() == IOstream::ASCII) || !is_contiguous<T>::value )
+#else
         if( (is.format() == IOstream::ASCII) || !contiguous<T>() )
+#endif
         {
             // Read beginning of contents
             char listDelimiter = is.readBeginList("List");

@@ -199,7 +199,11 @@ class labelledPair
 //- Specify data associated with labelledPair
 //- type is contiguous
 template<>
+#ifdef FOAM_VERSION_1912
+struct is_contiguous<labelledPair> : std::true_type {};
+ #else
 inline bool contiguous<labelledPair>() {return true;}
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
