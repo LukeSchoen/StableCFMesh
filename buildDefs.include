@@ -39,7 +39,7 @@ ifeq (OpenFOAM,$(findstring OpenFOAM,$(WM_PROJECT)))
         CFMESH_MACROS = -DFOAM_VERSION_6
         CFMESH_LIBS = -lmeshTools -ltriSurface
     endif    
-    ifeq (OpenFOAM-plus,$(findstring OPENFOAM-plus,$(WM_PROJECT_DIR)))
+    ifeq (OpenFOAM-plus,$(findstring OpenFOAM-plus,$(WM_PROJECT_DIR)))
         CFMESH_MACROS = -DFOAM_VERSION_1912 -DFOAM_VERSION_1906
         CFMESH_LIBS = -lmeshTools -lsurfMesh
     endif
