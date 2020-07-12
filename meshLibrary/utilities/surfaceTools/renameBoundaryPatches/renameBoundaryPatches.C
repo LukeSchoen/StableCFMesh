@@ -86,8 +86,12 @@ void renameBoundaryPatches::calculateNewBoundary()
                     newPatchNames.lookupEntry
                     (
                         keys[patchI],
+#ifdef FOAM_VERSION_1912
+                        keyType::LITERAL
+#else
                         false,
                         false
+#endif
                     ).clone()
                 );
         }
