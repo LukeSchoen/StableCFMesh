@@ -85,7 +85,7 @@ void meshSurfaceEdgeExtractorFUN::distributeBoundaryFaces()
     # endif
     forAll(bFaces, bfI)
     {
-        const point c = bFaces[bfI].centre(points);
+        const point c = bFaces[bfI].centre(dynamic_cast<const pointField&>(points));
 
         label facePatch, nt;
         point p;

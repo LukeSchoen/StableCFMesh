@@ -783,7 +783,8 @@ void extrudeLayer::movePoints()
 
                         if( thickness_ < 0.0 )
                         {
-                            const vector c = f.centre(points);
+                            const vector c = 
+                                f.centre(dynamic_cast<const pointField&>(points));
                             scalar d(VGREAT);
 
                             forAll(f, pI)
@@ -873,7 +874,8 @@ void extrudeLayer::movePoints()
 
                     if( thickness_ < 0.0 )
                     {
-                        const vector c = f.centre(points);
+                        const vector c = 
+                            f.centre(dynamic_cast<const pointField&>(points));
                         scalar d(VGREAT);
 
                         forAll(f, pI)

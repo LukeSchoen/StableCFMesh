@@ -851,7 +851,7 @@ bool edgeExtractor::findCornerCandidates()
     forAll(bFaces, bfI)
     {
         const face& bf = bFaces[bfI];
-        const point c = bf.centre(points);
+        const point c = bf.centre(dynamic_cast<const pointField&>(points));
 
         forAll(bf, pI)
         {

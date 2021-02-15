@@ -185,7 +185,7 @@ void triSurfaceClassifyEdges::checkOrientation()
         forAll(orientationGroup, triI)
         {
             const labelledTri& tri = surf[triI];
-            const point c = tri.centre(points);
+            const point c = tri.centre(dynamic_cast<const pointField&>(points));
             vector n = help::triangleAreaNormal(tri, points);
             const scalar magN = mag(n);
 

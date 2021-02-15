@@ -125,7 +125,7 @@ void meshSurfaceEdgeExtractor2D::distributeBoundaryFaces()
         else
         {
             //- this face is active
-            const point c = f.centre(points);
+            const point c = f.centre(dynamic_cast<const pointField&>(points));
 
             //- find the patch index of the nearest location on the surface mesh
             point mapPoint;

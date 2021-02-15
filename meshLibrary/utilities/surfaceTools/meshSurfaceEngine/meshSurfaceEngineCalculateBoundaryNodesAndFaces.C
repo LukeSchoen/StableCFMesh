@@ -801,7 +801,8 @@ void meshSurfaceEngine::calculateFaceCentres() const
     # pragma omp parallel for if( bFaces.size() > 1000 )
     # endif
     forAll(bFaces, bfI)
-        faceCentresPtr_->operator[](bfI) = bFaces[bfI].centre(points);
+        faceCentresPtr_->operator[](bfI) = 
+            bFaces[bfI].centre(dynamic_cast<const pointField&>(points));
 }
 
 void meshSurfaceEngine::updatePointNormalsAtProcBoundaries() const

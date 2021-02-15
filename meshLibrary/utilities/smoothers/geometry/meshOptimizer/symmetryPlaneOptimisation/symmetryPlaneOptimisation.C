@@ -65,7 +65,8 @@ void symmetryPlaneOptimisation::detectSymmetryPlanes()
             const label end = start + boundaries[patchI].patchSize();
             for(label faceI=start;faceI<end;++faceI)
             {
-                cs.first += faces[faceI].centre(points);
+                cs.first += 
+                    faces[faceI].centre(dynamic_cast<const pointField&>(points));
                 ns.first += help::faceAreaNormal(faces[faceI], points);
             }
 
@@ -122,7 +123,7 @@ bool symmetryPlaneOptimisation::pointInPlanes(VRWGraph& pointInPlanes) const
             {
                 const face& f = faces[faceI];
 
-                const point c = f.centre(points);
+                const point c = f.centre(dynamic_cast<const pointField&>(points));
                 scalar maxDist(0.0);
                 forAll(f, pI)
                     maxDist = max(maxDist, mag(points[f[pI]] - c));

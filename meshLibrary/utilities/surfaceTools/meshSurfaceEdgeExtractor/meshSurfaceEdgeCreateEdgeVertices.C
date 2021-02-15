@@ -112,7 +112,10 @@ void meshSurfaceEdgeExtractor::createEdgeVertices()
                 {
                     points.append
                     (
-                        edges[faceEdges(faceI, pI)].centre(points)
+                        edges[faceEdges(faceI, pI)].centre
+                        (
+                            dynamic_cast<const pointField&>(points)
+                        )
                     );
                 }
 

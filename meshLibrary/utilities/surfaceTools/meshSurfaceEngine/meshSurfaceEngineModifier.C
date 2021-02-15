@@ -94,7 +94,7 @@ void meshSurfaceEngineModifier::moveBoundaryVertex
         {
             const label bfI = pFaces(bpI, pfI);
 
-            faceCentres[bfI] = bFaces[bfI].centre(points);
+            faceCentres[bfI] = bFaces[bfI].centre(dynamic_cast<const pointField&>(points));
         }
     }
 
@@ -263,7 +263,7 @@ void meshSurfaceEngineModifier::updateGeometry
         forAll(updateFaces, bfI)
         {
             if( updateFaces[bfI] )
-                faceCentres[bfI] = bFaces[bfI].centre(points);
+                faceCentres[bfI] = bFaces[bfI].centre(dynamic_cast<const pointField&>(points));
         }
     }
 

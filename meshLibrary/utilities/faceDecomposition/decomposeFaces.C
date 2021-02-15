@@ -120,7 +120,7 @@ void decomposeFaces::decomposeMeshFaces(const boolList& decomposeFace)
                 newFacesForFace_.append(faceI, nFaces++);
             }
 
-            p = f.centre(points);
+            p = f.centre(dynamic_cast<const pointField&>(points));
             points[nPoints] = p;
             ++nPoints;
         }
@@ -172,7 +172,7 @@ void decomposeFaces::decomposeMeshFaces(const boolList& decomposeFace)
                     newFacesForFace_.append(bfI, nFaces++);
                 }
 
-                p = f.centre(points);
+                p = f.centre(dynamic_cast<const pointField&>(points));
                 points[nPoints++] = p;
             }
             else
@@ -249,7 +249,7 @@ void decomposeFaces::decomposeMeshFaces(const boolList& decomposeFace)
                         newFacesForFace_.append(bfI, nFaces++);
                     }
 
-                    p = f.centre(points);
+                    p = f.centre(dynamic_cast<const pointField&>(points));
                     points[nPoints++] = p;
                 }
                 else

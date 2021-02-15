@@ -222,7 +222,7 @@ void edgeExtractor::findPatchesNearSurfaceFace()
         {
             const face& bf = bFaces[bfI];
 
-            const vector c = bf.centre(points);
+            const vector c = bf.centre(dynamic_cast<const pointField&>(points));
 
             // find a reasonable searching distance comparable to face size
             scalar d(0.0);
@@ -722,7 +722,8 @@ void edgeExtractor::moveVerticesTowardsDiscontinuities(const label nIterations)
             # endif
             forAll(bFaces, bfI)
             {
-                const vector centre = bFaces[bfI].centre(points);
+                const vector centre = 
+                    bFaces[bfI].centre(dynamic_cast<const pointField&>(points));
 
                 point newP;
                 scalar distSq;
@@ -903,7 +904,7 @@ void edgeExtractor::distributeBoundaryFaces()
     {
         const face& bf = bFaces[bfI];
 
-        const point c = bf.centre(points);
+        const point c = bf.centre(dynamic_cast<const pointField&>(points));
 
         //- find the nearest surface patch to face centre
         label fPatch, nTri;
@@ -1024,7 +1025,7 @@ bool edgeExtractor::distributeBoundaryFacesNormalAlignment()
                 scalar dSq(VGREAT);
                 label nearestTriangle;
 
-                point p = bf.centre(points);
+                point p = bf.centre(dynamic_cast<const pointField&>(points));
                 meshOctree_.findNearestSurfacePointInRegion
                 (
                     pMap,

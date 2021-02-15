@@ -72,7 +72,7 @@ void meshSurfaceMapper2D::findMappingDistance
         mappingDistance.insert(std::make_pair(beI, 0.0));
         std::map<label, scalar>::iterator mIter = mappingDistance.find(beI);
 
-        const point p = edges[beI].centre(points);
+        const point p = edges[beI].centre(dynamic_cast<const pointField&>(points));
         forAllRow(eFaces, beI, efI)
         {
             const scalar d = magSqr(faceCentres[eFaces(beI, efI)] - p);
