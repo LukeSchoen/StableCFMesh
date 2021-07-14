@@ -208,7 +208,7 @@ inline Foam::label Foam::LongList<T, Offset>::size() const
 template<class T, Foam::label Offset>
 inline Foam::label Foam::LongList<T, Offset>::byteSize() const
 {
-#ifdef FOAM_VERSION_1912
+#if OPENFOAM >= 1912
     if( !is_contiguous<T>::value )
 #else
     if( !contiguous<T>() )

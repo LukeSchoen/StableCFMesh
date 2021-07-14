@@ -42,6 +42,13 @@ inline meshOctreeCubeBasic::meshOctreeCubeBasic()
     procNo_(ALLPROCS)
 {}
 
+inline meshOctreeCubeBasic::meshOctreeCubeBasic(const meshOctreeCubeBasic& mocb)
+:
+    meshOctreeCubeCoordinates(mocb),
+    cubeType_(mocb.cubeType_),
+    procNo_(mocb.procNo_)
+{}
+
 inline meshOctreeCubeBasic::meshOctreeCubeBasic
 (
     const meshOctreeCubeCoordinates& cc

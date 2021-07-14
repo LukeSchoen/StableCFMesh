@@ -258,9 +258,15 @@ autoPtr<triSurf> mergeSurfacePatches
     {
         newPatches[patchCount] = geometricSurfacePatch
         (
+#if OPENFOAM >= 2006
+            newPatchName,
+            patchCount,
+            newPatchType
+#else
             newPatchType,
             newPatchName,
             patchCount
+#endif
         );
     }
     if(patchAddr[patchAddr.size()-1].size() || keepPatches)

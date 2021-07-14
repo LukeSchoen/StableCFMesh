@@ -74,8 +74,18 @@ processorBoundaryPatch::processorBoundaryPatch
     boundaryPatchBase(name, dict),
     myProcNo_(readLabel(dict.lookup("myProcNo"))),
     neighbProcNo_(readLabel(dict.lookup("neighbProcNo")))
-{
-}   
+{}   
+
+processorBoundaryPatch::processorBoundaryPatch
+(
+    const processorBoundaryPatch& pbp
+)
+:
+    boundaryPatchBase(pbp),
+    myProcNo_(pbp.myProcNo_),
+    neighbProcNo_(pbp.neighbProcNo_)
+{}
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
     

@@ -71,6 +71,13 @@ class labelledPoint
             coords_(vector::zero)
         {}
         
+        //- Construct as copy
+        labelledPoint(const labelledPoint& lp)
+        :
+            pLabel_(lp.pLabel_),
+            coords_(lp.coords_)
+        {}
+
         //- Construct from point and label
         labelledPoint(const label pl, const point& p)
         :
@@ -159,9 +166,9 @@ class labelledPoint
 
 //- Specify data associated with labelledPoint type is contiguous
 template<> 
-#ifdef FOAM_VERSION_1912
+#if OPENFOAM >= 1912
 struct is_contiguous<labelledPoint> : std::true_type {};
- #else
+#else
 inline bool contiguous<labelledPoint>() {return true;}
 #endif
 

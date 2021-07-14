@@ -150,7 +150,7 @@ void exchangeMap
 {
     data.clear();
 
-#ifdef FOAM_VERSION_1912
+#if OPENFOAM >= 1912
     if( !is_contiguous<T>::value )
 #else
     if( !contiguous<T>() )
@@ -340,7 +340,7 @@ void exchangeMap
 {
     mOut.clear();
 
-#ifdef FOAM_VERSION_1912
+#if OPENFOAM >= 1912
     if( !is_contiguous<T>::value )
 #else
     if( !contiguous<T>() )

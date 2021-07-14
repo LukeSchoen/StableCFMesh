@@ -67,6 +67,9 @@ public:
         //- Null contructor
         patchRefinement();
 
+        //- Copy contructor
+        patchRefinement(const patchRefinement& pr);
+
         //- Construct from word and desired cell size
         patchRefinement(const word&, const scalar&);
 

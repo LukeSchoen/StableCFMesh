@@ -75,6 +75,14 @@ class labelledPointScalar
             weight_(0.0)
         {}
         
+        //- Construct as copy
+        labelledPointScalar(const labelledPointScalar& lps)
+        :
+            pLabel_(lps.pLabel_),
+            coords_(lps.coords_),
+            weight_(lps.weight_)
+        {}
+            
         //- Construct from point and label
         labelledPointScalar(const label pl, const point& p, const scalar s)
         :
@@ -178,7 +186,7 @@ class labelledPointScalar
 
 //- Specify data associated with labelledPointScalar type is contiguous
 template<>
-#ifdef FOAM_VERSION_1912
+#if OPENFOAM >= 1912
 struct is_contiguous<labelledPointScalar> : std::true_type {};
 #else
 inline bool contiguous<labelledPointScalar>() {return true;}

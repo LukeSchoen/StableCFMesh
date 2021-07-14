@@ -227,7 +227,7 @@ public:
 
 //- Specify data associated with meshOctreeCubeCoordinates type is contiguous
 template<>
-#ifdef FOAM_VERSION_1912
+#if OPENFOAM >= 1912
 struct is_contiguous<meshOctreeCubeCoordinates> : std::true_type {};
  #else
 inline bool contiguous<meshOctreeCubeCoordinates>() {return true;}

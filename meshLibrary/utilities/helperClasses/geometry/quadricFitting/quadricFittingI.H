@@ -53,7 +53,7 @@ void quadricFitting::calculateNormalVector()
 
     //- estimate the normal as the eigenvector associated
     //- to the smallest eigenvalue
-    # ifdef OpenCFDSpecific
+    # ifdef OPENFOAM
     normal_ = eigenVectors(mat, ev).x();
     # else
     normal_ = help::eigenVector(mat, ev[0]);

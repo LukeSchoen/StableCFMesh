@@ -217,7 +217,7 @@ void meshOctreeCreator::refineBoxesContainedInObjects()
 
         forAll(refObjects, objectI)
         {
-#ifdef FOAM_VERSION_1912
+#if OPENFOAM >= 1912
             const entry& objectEntry =
                 dict.lookupEntry(objectNames[objectI], keyType::LITERAL);
 #else

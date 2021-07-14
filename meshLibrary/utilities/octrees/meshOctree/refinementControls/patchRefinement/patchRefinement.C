@@ -49,6 +49,13 @@ patchRefinement::patchRefinement()
 {
 }
 
+patchRefinement::patchRefinement(const patchRefinement& pr)
+:
+    patchName_(pr.patchName_),
+    cellSize_(pr.cellSize_)
+{
+}
+
 patchRefinement::patchRefinement(const word& n, const scalar& s)
 :
     patchName_(n),

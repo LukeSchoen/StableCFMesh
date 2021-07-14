@@ -248,7 +248,7 @@ inline Foam::label Foam::DynList<T, staticSize>::byteSize() const
     checkAllocation();
     # endif
 
-#ifdef FOAM_VERSION_1912
+#if OPENFOAM >= 1912
     if( !is_contiguous<T>::value )
 #else
     if( !contiguous<T>() )

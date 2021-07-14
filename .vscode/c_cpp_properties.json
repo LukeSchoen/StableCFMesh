@@ -27,10 +27,6 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceRoot}",
-                "/usr/include/c++/7",
-                "/usr/include/c++/7/x86_64-redhat-linux",
-                "/usr/include/c++/6.3.1",
-                "/usr/include/c++/6.3.1/x86_64-redhat-linux",
                 "/usr/local/include",
                 "/usr/include",
                 "/usr/include/linux",
@@ -131,7 +127,6 @@
             "defines": [],
             "browse": {
                 "path": [
-                    "/usr/include/c++/6.3.1",
                     "/usr/local/include",
                     "/usr/include",
                     "${FOAM_SRC}",

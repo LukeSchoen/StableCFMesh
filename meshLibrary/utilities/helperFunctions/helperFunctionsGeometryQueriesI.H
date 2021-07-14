@@ -801,9 +801,9 @@ inline vector triangleAreaNormal(const labelledTri& tri, const pointField& p)
 
 inline vector faceAreaNormal(const face& f, const pointField& p)
 {
-    #if defined(FOAM_VERSION_1906)
+    #if OPENFOAM >= 1906
     return f.areaNormal(p);
-    #elif defined(FOAM_VERSION_6)
+    #elif FOUNDATION >= 6
     return f.area(p);
     #else
     return f.normal(p);

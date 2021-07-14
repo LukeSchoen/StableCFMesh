@@ -131,7 +131,7 @@ public:
 
 //- Specify data associated with parPartTet type is contiguous
 template<> 
-#ifdef FOAM_VERSION_1912
+#if OPENFOAM >= 1912
 struct is_contiguous<parPartTet> : std::true_type {};
  #else
 inline bool contiguous<parPartTet>() {return true;}

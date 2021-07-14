@@ -288,7 +288,7 @@ void checkMeshDict::checkObjectRefinements() const
 
             forAll(refObjects, objectI)
             {
-#ifdef FOAM_VERSION_1912
+#if OPENFOAM >= 1912
                 const entry& objectEntry =
                     dict.lookupEntry(objectNames[objectI], keyType::LITERAL);
 #else
@@ -357,7 +357,7 @@ void checkMeshDict::checkAnisotropicSources() const
 
             forAll(anisotropicObjects, objectI)
             {
-#ifdef FOAM_VERSION_1912
+#if OPENFOAM >= 1912
                 const entry& objectEntry =
                     dict.lookupEntry(objectNames[objectI], keyType::LITERAL);
 #else
