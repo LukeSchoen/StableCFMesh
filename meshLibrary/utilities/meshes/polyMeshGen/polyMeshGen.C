@@ -29,6 +29,7 @@ Description
 #include "polyMeshGenAddressing.H"
 #include "demandDrivenData.H"
 #include "OFstream.H"
+#include "OSspecific.H"
 
 namespace Foam
 {

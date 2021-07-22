@@ -31,6 +31,7 @@ Description
 #include "OFstream.H"
 #include "IOmanip.H"
 #include "fileName.H"
+#include "OSspecific.H"
 
 #include "fpmaMesh.H"
 #include "writeMeshFPMA.H"

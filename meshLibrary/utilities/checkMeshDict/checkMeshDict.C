@@ -35,6 +35,7 @@ Description
 #include "LongList.H"
 #include "objectRefinement.H"
 #include "coordinateModification.H"
+#include "OSspecific.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

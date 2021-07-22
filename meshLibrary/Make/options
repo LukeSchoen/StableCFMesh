@@ -1,4 +1,4 @@
-#include "../../buildDefs.include"
+include ../buildDefs.include
 
 EXE_INC = \
     $(OMP_FLAGS) $(CFMESH_MACROS) $(BLUECFD) \
