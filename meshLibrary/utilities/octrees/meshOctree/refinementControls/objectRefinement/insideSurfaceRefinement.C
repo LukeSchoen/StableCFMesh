@@ -44,6 +44,10 @@ void insideSurfaceRefinement::initialiseSurfaceSearch()
     // Force it to construct the octree and initialise volume types now before 
     // we start searching - prevent an OpenMP race
     closedSurfaceSearch_->tree().getVolumeType(point(0,0,0));
+    closedSurfaceSearch_->tree().shapes().getVolumeType
+    (
+        closedSurfaceSearch_->tree(), point(0,0,0)
+    );
 }
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
