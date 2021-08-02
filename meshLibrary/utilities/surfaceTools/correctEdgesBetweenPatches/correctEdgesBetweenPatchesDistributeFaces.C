@@ -519,7 +519,11 @@ void correctEdgesBetweenPatches::patchCorrection()
                     decompose_ = true;
 
                     //- decompose into triangles
-                    const point p = bf.centre(mesh_.points());
+                    const point p = 
+                        bf.centre
+                        (
+                            dynamic_cast<const pointField&>(mesh_.points())
+                        );
                     triF[2] = mesh_.points().size();
                     mesh_.points().append(p);
 

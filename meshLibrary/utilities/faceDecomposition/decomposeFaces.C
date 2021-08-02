@@ -430,7 +430,8 @@ void decomposeFaces::decomposeConcaveInternalFaces
                 newFaces.appendList(newF);
             }
 
-            const point fCent = f.centre(points);
+            const point fCent = 
+                f.centre(dynamic_cast<const pointField&>(points));
             points.append(fCent);
         }
         else

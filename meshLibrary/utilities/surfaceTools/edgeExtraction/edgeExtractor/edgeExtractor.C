@@ -291,7 +291,7 @@ void edgeExtractor::findFeatureEdgesNearEdge()
         forAll(edges, edgeI)
         {
             const edge& e = edges[edgeI];
-            const vector c = e.centre(points);
+            const vector c = e.centre(dynamic_cast<const pointField&>(points));
             const scalar d = 1.5 * e.mag(points);
 
             const boundBox bb(c - vector(d, d, d), c + vector(d, d, d));
