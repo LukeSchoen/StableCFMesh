@@ -41,13 +41,16 @@ void insideSurfaceRefinement::initialiseSurfaceSearch()
 {
     closedSurface_ = triSurface(closedSurfaceFile_);
     closedSurfaceSearch_.set(new triSurfaceSearch(closedSurface_));
-    // Force it to construct the octree and initialise volume types now before 
-    // we start searching - prevent an OpenMP race
-    closedSurfaceSearch_->tree().getVolumeType(point(0,0,0));
-    closedSurfaceSearch_->tree().shapes().getVolumeType
-    (
-        closedSurfaceSearch_->tree(), point(0,0,0)
-    );
+    // Force it to construct the octree and preallocate data to prevent OpenMP races
+    closedSurface_.edges();
+    closedSurface_.localFaces();
+    closedSurface_.localPoints();
+    closedSurface_.edgeFaces();
+    closedSurface_.pointEdges();
+    closedSurface_.faceNormals();
+    closedSurface_.pointNormals();
+    closedSurface_.faceEdges();
+    closedSurfaceSearch_->tree();
 }
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
