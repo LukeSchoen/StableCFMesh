@@ -51,6 +51,7 @@ void insideSurfaceRefinement::initialiseSurfaceSearch()
     closedSurface_.pointNormals();
     closedSurface_.faceEdges();
     closedSurfaceSearch_->tree();
+    closedSurfaceSearch_->tree().getVolumeType(point(0,0,0));
 }
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
