@@ -54,7 +54,11 @@ autoPtr<Foam::coordinateModification> Foam::coordinateModification::New
         dict.lookup("type") >> cmType;
     }
 
+#if OPENFOAM >= 2112
+    dictionaryConstructorTableType::iterator cstrIter =
+#else
     dictionaryConstructorTable::iterator cstrIter =
+#endif
         dictionaryConstructorTablePtr_->find(cmType);
 
     if( cstrIter == dictionaryConstructorTablePtr_->end() )

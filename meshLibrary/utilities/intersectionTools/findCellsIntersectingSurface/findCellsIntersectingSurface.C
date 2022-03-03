@@ -38,6 +38,7 @@ Description
 #else
 #include "HashSet.H"
 #endif
+#include "demandDrivenData.H"
 
 # ifdef USE_OMP
 #include <omp.h>

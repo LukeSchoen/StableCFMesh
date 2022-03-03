@@ -5,28 +5,52 @@
     "tasks":[
         {
             "label": "Allwmake",
+            "type": "shell",
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
-            "type": "shell",
+            // Allwmake script changes directories, so paths printed by g++ are not relative to a
+            // predictable root. Therefore we filter the output to find the files specified in
+            // errors so that the problem matcher can understand them.
+            "command": ". ${workspaceRoot}/.vscode/absDirWmake; . ./Allwmake",
+            "options": {
+                "cwd": "${workspaceRoot}"
+            },
             "presentation": {
                 "reveal": "always",
-                "panel": "dedicated",
-                "clear": true
+                "panel": "dedicated"
             },
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            // Allwmake script changes directories, so paths printed by g++ are not relative to a 
-            // predictable root. Therefore we filter the output to find the files specified in 
-            // errors so that the problem matcher can understand them.
-            "command": "wmake() { bash -c '$WM_PROJECT_DIR/wmake/wmake '\"$*\"' 2>&1 | while read LINE; do FILE=$(echo $LINE | sed \"s#^\\\\([^: ]*\\\\):[0-9]\\+:[0-9]\\+.*#\\\\1#; t; d\"); if [ -n \"$FILE\" ] && [ \"${FILE:0:1}\" != \"/\" ] ; then if [ '\"$1\"' == \"all\" ]; then echo -n \"$MAKEDIR/\"; else echo -n \"$PWD/'\"${@: -1}\"'/\"; fi; else MD=$(echo $LINE | sed \"s#^make\\[[0-9]\\+\\]: Entering directory '\"'\"'\\\\(.*\\\\)'\"'\"'\\$#\\\\1#; t; d\"); if [ -n \"$MD\" ] ; then MAKEDIR=\"$MD\"; fi; fi; echo \"$LINE\"; done'; }; export -f wmake; bash -c ./Allwmake",
             "problemMatcher": {
                 "owner": "cpp",
                 "fileLocation": "absolute",
                 "pattern": {
-                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error|fatal error|required from)[:]?\\s+(.*)$",
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(note|warning|error|fatal error|required from):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                }
+            }
+        },
+        {
+            "label": "wmake",
+            "type": "shell",
+            "group": "build",
+            "command": ". ${workspaceRoot}/.vscode/absDirWmake; wmake",
+            "options": {
+                "cwd": "${fileDirname}"
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            },
+            "problemMatcher": {
+                "owner": "cpp",
+                "fileLocation": "absolute",
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(note|warning|error|fatal error|required from):\\s+(.*)$",
                     "file": 1,
                     "line": 2,
                     "column": 3,

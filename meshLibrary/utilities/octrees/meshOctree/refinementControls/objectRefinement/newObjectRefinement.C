@@ -54,7 +54,11 @@ autoPtr<Foam::objectRefinement> Foam::objectRefinement::New
         dict.lookup("type") >> refType;
     }
 
+#if OPENFOAM >= 2112
+    dictionaryConstructorTableType::iterator cstrIter =
+#else
     dictionaryConstructorTable::iterator cstrIter =
+#endif
         dictionaryConstructorTablePtr_->find(refType);
 
     if( cstrIter == dictionaryConstructorTablePtr_->end() )
