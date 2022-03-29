@@ -94,11 +94,13 @@ void polyMeshGenModifier::removeCells
         if( (newCellLabel[cellI] != -1) && (newCellLabel[cellI] < cellI) )
         {
             cells[newCellLabel[cellI]].transfer(cells[cellI]);
-            cellLevel[newCellLabel[cellI]] = cellLevel[cellI];
+            if(cellLevel.size())
+                cellLevel[newCellLabel[cellI]] = cellLevel[cellI];
         }
 
     cells.setSize(nCells);
-    cellLevel.setSize(nCells);
+    if(cellLevel.size())
+        cellLevel.setSize(nCells);
 
     //- update cell subsets in the mesh
     mesh_.updateCellSubsets(newCellLabel);
