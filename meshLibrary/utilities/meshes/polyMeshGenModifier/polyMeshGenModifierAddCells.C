@@ -114,6 +114,10 @@ void polyMeshGenModifier::addCells(const VRWGraphList& cellFaces)
     label nFaces = faces.size();
     label nCells = cells.size();
 
+/*
+    # ifdef USE_OMP
+    //# pragma omp parallel for schedule(dynamic, 50)
+    # endif
     forAll(cellFaces, cI)
     {
         faceList facesInCell(cellFaces.sizeOfGraph(cI));
@@ -148,13 +152,18 @@ void polyMeshGenModifier::addCells(const VRWGraphList& cellFaces)
 
             if( fLabel == -1 )
             {
-                faces.append(f);
-                c[fI++] = nFaces;
+                # ifdef USE_OMP
+                //# pragma omp critical
+                # endif
+                {
+                    faces.append(f);
+                    c[fI++] = nFaces;
 
-                forAll(f, pI)
-                    pointFaces.append(f[pI], nFaces);
+                    forAll(f, pI)
+                        pointFaces.append(f[pI], nFaces);
 
-                ++nFaces;
+                    ++nFaces;
+                }
             }
             else
             {
@@ -162,9 +171,136 @@ void polyMeshGenModifier::addCells(const VRWGraphList& cellFaces)
             }
         }
 
-        cells.append(c);
-        cellLevel.append(-1); //TODO: Get cellLevel from neighbouring cell?
-        ++nCells;
+        # ifdef USE_OMP
+        # pragma omp critical
+        # endif
+        {
+            cells.append(c);
+            cellLevel.append(-1); //TODO: Get cellLevel from neighbouring cell?
+            ++nCells;
+        }
+    }
+*/
+    // Ideas for OMP-friendly algorithm:
+    // 1. Search to match existing faces
+    // 2. For each new face added search in the other direction, from pointFaces
+    // back to faces
+
+    // Other idea:
+    // As existing algo, but search pointFaces at the end for duplicates and eliminate
+
+    // Other idea:
+    // Do in batch. Search/add all/search/remove dups
+
+    boolList pointLocked(pointFaces.size(), false);
+
+    cells.setSize(nCells+cellFaces.size());
+    cellLevel.setSize(nCells+cellFaces.size(), -1);
+
+    # ifdef USE_OMP
+    //# pragma omp parallel for schedule(dynamic, 50)
+    # pragma omp parallel
+    # pragma omp single
+    # pragma omp taskloop default(shared) num_tasks(1)
+    # endif
+    forAll(cellFaces, cI)
+    {
+        faceList facesInCell(cellFaces.sizeOfGraph(cI));
+        forAll(facesInCell, fI)
+        {
+            facesInCell[fI].setSize(cellFaces.sizeOfRow(cI, fI));
+
+            forAll(facesInCell[fI], pI)
+                facesInCell[fI][pI] = cellFaces(cI, fI, pI);
+        }
+
+        label fI(0);
+        cell c(facesInCell.size());
+
+        forAll(facesInCell, faceI)
+        {
+            const face& f = facesInCell[faceI];
+
+            const label pointI = f[0];
+
+            while(true)
+            {
+                bool clear = true;
+
+                // Lock out the involved points. No other thread can add to the
+                // pointFaces list involving these points until we're done
+                # ifdef USE_OMP
+                # pragma omp critical
+                # endif
+                {
+                    forAll (f, pI)
+                    {
+                        if (pointLocked[f[pI]]) 
+                            clear = false;
+                    }
+                    if (clear)
+                    {
+                        forAll (f, pI)
+                            pointLocked[f[pI]] = true;
+                    }
+                }
+                if (clear)
+                    break;
+
+                // Points are not available. Go do some other cells in the 
+                // loop before coming back and checking again
+                # pragma omp taskyield
+            }
+
+            label fLabel(-1);
+            forAllRow(pointFaces, pointI, pfI)
+            {
+                const label faceI = pointFaces(pointI, pfI);
+
+                if( faces[faceI] == f )
+                {
+                    fLabel = faceI;
+                    break;
+                }
+            }
+
+            if( fLabel == -1 )
+            {
+                # ifdef USE_OMP
+                # pragma omp critical
+                # endif
+                {
+                    faces.append(f);
+                    c[fI++] = nFaces;
+
+                    forAll(f, pI)
+                    {
+                        pointFaces.append(f[pI], nFaces);
+//                        Info << f[pI] << " " << pointFaces[f[pI]] << endl;
+                    }
+
+                    ++nFaces;
+                }
+            }
+            else
+            {
+                c[fI++] = fLabel;
+            }
+
+            forAll (f, pI)
+                pointLocked[f[pI]] = false;
+        }
+
+        # ifdef USE_OMP
+        # pragma omp critical
+        # endif
+        {
+            //Info << nCells << " " << cI << endl;
+            //cells.append(c);
+            //cellLevel.append(-1); //TODO: Get cellLevel from neighbouring cell?
+            //++nCells;
+            cells[nCells+cI] = c;
+        }
     }
 
     this->clearOut();
