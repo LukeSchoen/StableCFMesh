@@ -114,10 +114,26 @@ void polyMeshGenModifier::addCells(const VRWGraphList& cellFaces)
     label nFaces = faces.size();
     label nCells = cells.size();
 
-/*
-    # ifdef USE_OMP
-    //# pragma omp parallel for schedule(dynamic, 50)
-    # endif
+# ifdef USE_OMP
+
+    // SMP-friendly algorithm:
+    // 1. Search for dups of new faces in existing faces
+    // 2. If not found, add point->cell-face mapping for new faces
+    // 3. Loop through new cell-faces, add if only one found in 
+    //    point->cell-face mapping; or, if two found, add only if we are on the 
+    //    lower numbered cell.
+
+    boolList pointLocked(pointFaces.size(), false);
+
+    cells.setSize(nCells+cellFaces.size());
+    cellLevel.setSize(nCells+cellFaces.size(), -1);
+
+    VRWGraph newPointCell(pointFaces.size());
+    VRWGraph newPointCellFace(pointFaces.size());
+
+    # pragma omp parallel
+    # pragma omp single
+    # pragma omp taskloop default(shared) num_tasks(50)
     forAll(cellFaces, cI)
     {
         faceList facesInCell(cellFaces.sizeOfGraph(cI));
@@ -129,12 +145,11 @@ void polyMeshGenModifier::addCells(const VRWGraphList& cellFaces)
                 facesInCell[fI][pI] = cellFaces(cI, fI, pI);
         }
 
-        label fI(0);
         cell c(facesInCell.size());
 
-        forAll(facesInCell, faceI)
+        forAll(facesInCell, fI)
         {
-            const face& f = facesInCell[faceI];
+            const face& f = facesInCell[fI];
 
             const label pointI = f[0];
 
@@ -152,57 +167,28 @@ void polyMeshGenModifier::addCells(const VRWGraphList& cellFaces)
 
             if( fLabel == -1 )
             {
-                # ifdef USE_OMP
-                //# pragma omp critical
-                # endif
+                // Resize VRWGraph can re-size the underlying data so needs 
+                // to be critical 
+                // TODO: Split this into setRowSize (critical) and assignment (point-blocked only)?
+                # pragma omp critical
+                forAll(f, pI)
                 {
-                    faces.append(f);
-                    c[fI++] = nFaces;
-
-                    forAll(f, pI)
-                        pointFaces.append(f[pI], nFaces);
-
-                    ++nFaces;
+                    newPointCell.append(f[pI], cI);
+                    newPointCellFace.append(f[pI], fI);
                 }
             }
             else
             {
-                c[fI++] = fLabel;
+                c[fI] = fLabel;
             }
         }
 
-        # ifdef USE_OMP
-        # pragma omp critical
-        # endif
-        {
-            cells.append(c);
-            cellLevel.append(-1); //TODO: Get cellLevel from neighbouring cell?
-            ++nCells;
-        }
+        cells[nCells+cI] = c;
     }
-*/
-    // Ideas for OMP-friendly algorithm:
-    // 1. Search to match existing faces
-    // 2. For each new face added search in the other direction, from pointFaces
-    // back to faces
 
-    // Other idea:
-    // As existing algo, but search pointFaces at the end for duplicates and eliminate
-
-    // Other idea:
-    // Do in batch. Search/add all/search/remove dups
-
-    boolList pointLocked(pointFaces.size(), false);
-
-    cells.setSize(nCells+cellFaces.size());
-    cellLevel.setSize(nCells+cellFaces.size(), -1);
-
-    # ifdef USE_OMP
-    //# pragma omp parallel for schedule(dynamic, 50)
     # pragma omp parallel
     # pragma omp single
-    # pragma omp taskloop default(shared) num_tasks(1)
-    # endif
+    # pragma omp taskloop default(shared) num_tasks(50)
     forAll(cellFaces, cI)
     {
         faceList facesInCell(cellFaces.sizeOfGraph(cI));
@@ -214,37 +200,34 @@ void polyMeshGenModifier::addCells(const VRWGraphList& cellFaces)
                 facesInCell[fI][pI] = cellFaces(cI, fI, pI);
         }
 
-        label fI(0);
-        cell c(facesInCell.size());
+        cell& c = cells[nCells+cI];
 
-        forAll(facesInCell, faceI)
+        forAll(facesInCell, fI)
         {
-            const face& f = facesInCell[faceI];
+            const face& f = facesInCell[fI];
 
             const label pointI = f[0];
 
             while(true)
             {
-                bool clear = true;
+                bool allClear = true;
 
                 // Lock out the involved points. No other thread can add to the
                 // pointFaces list involving these points until we're done
-                # ifdef USE_OMP
                 # pragma omp critical
-                # endif
                 {
                     forAll (f, pI)
                     {
                         if (pointLocked[f[pI]]) 
-                            clear = false;
+                            allClear = false;
                     }
-                    if (clear)
+                    if (allClear)
                     {
                         forAll (f, pI)
                             pointLocked[f[pI]] = true;
                     }
                 }
-                if (clear)
+                if (allClear)
                     break;
 
                 // Points are not available. Go do some other cells in the 
@@ -252,6 +235,81 @@ void polyMeshGenModifier::addCells(const VRWGraphList& cellFaces)
                 # pragma omp taskyield
             }
 
+            bool foundSelf = false;
+            label cIMatch = -1;
+            label fIMatch = -1;
+            forAllRow(newPointCell, pointI, pI)
+            {
+                const label cI2 = newPointCell(pointI, pI);
+                const label fI2 = newPointCellFace(pointI, pI);
+                if (!foundSelf && cI2 == cI && fI2 == fI)
+                {
+                    foundSelf = true;
+                    if (cIMatch != -1)
+                        break;
+                }
+                else
+                {
+                    face face2(cellFaces.sizeOfRow(cI2, fI2));
+                    forAll(face2, pI)
+                        face2[pI] = cellFaces(cI2, fI2, pI);
+                    if (face2 == f)
+                    {
+                        cIMatch = cI2;
+                        fIMatch = fI2;
+                        if (foundSelf)
+                            break;
+                    }
+                }
+            }
+
+            #ifdef FULLDEBUG
+            if (cIMatch != -1 && !foundSelf)
+                FatalErrorInFunction << "Unexpected error" << exit(FatalError);
+            #endif
+            if (foundSelf && (cIMatch == -1 || cI < cIMatch))
+            {
+                # pragma omp critical
+                {
+                    faces.append(f);
+                    forAll(f, pI)
+                        pointFaces.append(f[pI], nFaces);
+                    c[fI] = nFaces;
+                    if (cIMatch != -1)
+                        cells[nCells+cIMatch][fIMatch] = nFaces;
+                    ++nFaces;
+                }
+            }
+
+            forAll (f, pI)
+                pointLocked[f[pI]] = false;
+        }
+    }
+
+    nCells = cells.size();
+
+#else //USE_OMP
+
+    forAll(cellFaces, cI)
+    {
+        faceList facesInCell(cellFaces.sizeOfGraph(cI));
+        forAll(facesInCell, fI)
+        {
+            facesInCell[fI].setSize(cellFaces.sizeOfRow(cI, fI));
+
+            forAll(facesInCell[fI], pI)
+                facesInCell[fI][pI] = cellFaces(cI, fI, pI);
+        }
+
+        label fI(0);
+        cell c(facesInCell.size());
+
+        forAll(facesInCell, faceI)
+        {
+            const face& f = facesInCell[faceI];
+
+            const label pointI = f[0];
+
             label fLabel(-1);
             forAllRow(pointFaces, pointI, pfI)
             {
@@ -266,42 +324,26 @@ void polyMeshGenModifier::addCells(const VRWGraphList& cellFaces)
 
             if( fLabel == -1 )
             {
-                # ifdef USE_OMP
-                # pragma omp critical
-                # endif
-                {
-                    faces.append(f);
-                    c[fI++] = nFaces;
+                faces.append(f);
+                c[fI++] = nFaces;
 
-                    forAll(f, pI)
-                    {
-                        pointFaces.append(f[pI], nFaces);
-//                        Info << f[pI] << " " << pointFaces[f[pI]] << endl;
-                    }
+                forAll(f, pI)
+                    pointFaces.append(f[pI], nFaces);
 
-                    ++nFaces;
-                }
+                ++nFaces;
             }
             else
             {
                 c[fI++] = fLabel;
             }
-
-            forAll (f, pI)
-                pointLocked[f[pI]] = false;
         }
 
-        # ifdef USE_OMP
-        # pragma omp critical
-        # endif
-        {
-            //Info << nCells << " " << cI << endl;
-            //cells.append(c);
-            //cellLevel.append(-1); //TODO: Get cellLevel from neighbouring cell?
-            //++nCells;
-            cells[nCells+cI] = c;
-        }
+        cells.append(c);
+        cellLevel.append(-1); //TODO: Get cellLevel from neighbouring cell?
+        ++nCells;
     }
+
+#endif //USE_OMP
 
     this->clearOut();
     mesh_.clearOut();
