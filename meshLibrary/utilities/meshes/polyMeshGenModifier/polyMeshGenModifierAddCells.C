@@ -28,6 +28,7 @@ Description
 #include "polyMeshGenModifier.H"
 #include "VRWGraphList.H"
 #include "demandDrivenData.H"
+#include "VRWGraphSMPModifier.H"
 
 namespace Foam
 {
@@ -196,9 +197,23 @@ void polyMeshGenModifier::addCells(const VRWGraphList& cellFaces)
         cells[nCells+cI] = c;
     }
 
+    
+    label nThreads;
     # pragma omp parallel
-    # pragma omp single
-    # pragma omp taskloop default(shared) num_tasks(50)
+    {
+        # pragma omp master
+        nThreads = omp_get_num_threads();
+    }
+
+    List<VRWGraph> pointFacesSMP(nThreads);
+    
+    forAll(pointFacesSMP, threadI)
+        pointFacesSMP[threadI].setSize(pointFaces.size());
+
+    VRWGraphSMPModifier(pointFacesSMP[0]).operator=(pointFaces);
+    pointFaces.clear();
+
+    # pragma omp parallel for schedule(dynamic,50) num_threads(nThreads)
     forAll(cellFaces, cI)
     {
         cell& c = cells[nCells+cI];
@@ -210,33 +225,6 @@ void polyMeshGenModifier::addCells(const VRWGraphList& cellFaces)
                 f[pI] = cellFaces(cI, fI, pI);
 
             const label pointI = f[0];
-
-            while(true)
-            {
-                bool allClear = true;
-
-                // Lock out the involved points. No other thread can add to the
-                // pointFaces list involving these points until we're done
-                # pragma omp critical
-                {
-                    forAll (f, pI)
-                    {
-                        if (pointLocked[f[pI]]) 
-                            allClear = false;
-                    }
-                    if (allClear)
-                    {
-                        forAll (f, pI)
-                            pointLocked[f[pI]] = true;
-                    }
-                }
-                if (allClear)
-                    break;
-
-                // Points are not available. Go do some other cells in the 
-                // loop before coming back and checking again
-                # pragma omp taskyield
-            }
 
             bool foundSelf = false;
             label cIMatch = -1;
@@ -279,17 +267,17 @@ void polyMeshGenModifier::addCells(const VRWGraphList& cellFaces)
                     faces.append(f);
                     ++nFaces;
                 }
+                label nThread = omp_get_thread_num();
                 forAll(f, pI)
-                    pointFaces.append(f[pI], faceI);
+                    pointFacesSMP[nThread].append(f[pI], faceI);
                 c[fI] = faceI;
                 if (cIMatch != -1)
                     cells[nCells+cIMatch][fIMatch] = faceI;
             }
-
-            forAll (f, pI)
-                pointLocked[f[pI]] = false;
         }
     }
+
+    VRWGraphSMPModifier(pointFaces).mergeGraphs(pointFacesSMP);
 
     nCells = cells.size();
 
