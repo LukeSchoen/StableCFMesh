@@ -47,10 +47,14 @@ VRWGraphSMPModifier::~VRWGraphSMPModifier()
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-void VRWGraphSMPModifier::mergeGraphs(const List<VRWGraph>& graphParts)
+void VRWGraphSMPModifier::mergeGraphs
+(
+    const List<VRWGraph>& graphParts,
+    const bool addToExisting
+)
 {
     const label nGraphs = graphParts.size();
-    const label nRows = graphParts[0].size();
+    const label nRows(addToExisting ? graph_.size() : graphParts[0].size());
     forAll(graphParts, i)
     {
         if( nRows != graphParts[i].size() )
@@ -68,7 +72,7 @@ void VRWGraphSMPModifier::mergeGraphs(const List<VRWGraph>& graphParts)
     # endif
     for(label rowI=0;rowI<nRows;++rowI)
     {
-        label sum(0);
+        label sum(addToExisting ? graph_.sizeOfRow(rowI) : 0);
         for(label i=0;i<nGraphs;++i)
             sum += graphParts[i].sizeOfRow(rowI);
 
@@ -84,11 +88,12 @@ void VRWGraphSMPModifier::mergeGraphs(const List<VRWGraph>& graphParts)
     # endif
     for(label rowI=0;rowI<nRows;++rowI)
     {
+        const label offset(addToExisting ? graph_.sizeOfRow(rowI) : 0);
         forAll(graphParts, i)
         {
             const VRWGraph& gp = graphParts[i];
             for(label j=0;j<gp.sizeOfRow(rowI);++j)
-                graph_(rowI, --nElmtsInRow[rowI]) = gp(rowI, j);
+                graph_(rowI, --nElmtsInRow[rowI] + offset) = gp(rowI, j);
         }
     }
 }
