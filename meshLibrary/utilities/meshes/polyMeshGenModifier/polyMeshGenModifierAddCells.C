@@ -119,8 +119,8 @@ void polyMeshGenModifier::addCells(const VRWGraphList& cellFaces)
     // SMP-friendly algorithm:
     // 1. Search for dups of new faces in existing faces
     // 2. If not found, add point->cell-face mapping for new faces
-    // 3. Loop through new cell-faces, add if only one found in 
-    //    point->cell-face mapping; or, if two found, add only if we are on the 
+    // 3. Loop through new cell-faces, add if only one found in
+    //    point->cell-face mapping; or, if two found, add only if we are on the
     //    lower numbered cell.
 
     boolList pointLocked(pointFaces.size(), false);
@@ -128,12 +128,10 @@ void polyMeshGenModifier::addCells(const VRWGraphList& cellFaces)
     cells.setSize(nCells+cellFaces.size());
     cellLevel.setSize(nCells+cellFaces.size(), -1);
 
-    List<DynList<label>> newPointCell(pointFaces.size());
-    List<DynList<label>> newPointCellFace(pointFaces.size());
+    VRWGraph newPointCell(pointFaces.size());
+    VRWGraph newPointCellFace(pointFaces.size());
 
-    # pragma omp parallel
-    # pragma omp single
-    # pragma omp taskloop default(shared) num_tasks(50)
+    # pragma omp parallel for schedule(dynamic)
     forAll(cellFaces, cI)
     {
         cell c(cellFaces.sizeOfGraph(cI));
@@ -160,31 +158,13 @@ void polyMeshGenModifier::addCells(const VRWGraphList& cellFaces)
 
             if (fLabel == -1)
             {
+                // Resize VRWGraph can re-size the underlying data so needs
+                // to be critical
+                # pragma omp critical
                 forAll(f, pI)
                 {
-                    while(true)
-                    {
-                        // Lock out the point. No other thread can add to the
-                        // point-cell lists involving this point until we're
-                        // done
-                        bool clear = false;
-                        # pragma omp critical
-                        {
-                            if (!pointLocked[f[pI]]) 
-                            {
-                                pointLocked[f[pI]] = true;
-                                clear = true;
-                            }
-                        }
-                        if (clear)
-                            break;
-                        // Point unavailable. Do some other cells in the 
-                        // loop before coming back and checking again
-                        # pragma omp taskyield
-                    }
-                    newPointCell[f[pI]].append(cI);
-                    newPointCellFace[f[pI]].append(fI);
-                    pointLocked[f[pI]] = false;
+                    newPointCell.append(f[pI], cI);
+                    newPointCellFace.append(f[pI], fI);
                 }
             }
             else
@@ -196,9 +176,7 @@ void polyMeshGenModifier::addCells(const VRWGraphList& cellFaces)
         cells[nCells+cI] = c;
     }
 
-    # pragma omp parallel
-    # pragma omp single
-    # pragma omp taskloop default(shared) num_tasks(50)
+    # pragma omp parallel for schedule(dynamic)
     forAll(cellFaces, cI)
     {
         cell& c = cells[nCells+cI];
@@ -211,40 +189,13 @@ void polyMeshGenModifier::addCells(const VRWGraphList& cellFaces)
 
             const label pointI = f[0];
 
-            while(true)
-            {
-                bool allClear = true;
-
-                // Lock out the involved points. No other thread can add to the
-                // pointFaces list involving these points until we're done
-                # pragma omp critical
-                {
-                    forAll (f, pI)
-                    {
-                        if (pointLocked[f[pI]]) 
-                            allClear = false;
-                    }
-                    if (allClear)
-                    {
-                        forAll (f, pI)
-                            pointLocked[f[pI]] = true;
-                    }
-                }
-                if (allClear)
-                    break;
-
-                // Points are not available. Go do some other cells in the 
-                // loop before coming back and checking again
-                # pragma omp taskyield
-            }
-
             bool foundSelf = false;
             label cIMatch = -1;
             label fIMatch = -1;
-            forAll(newPointCell[pointI], pI)
+            forAllRow(newPointCell, pointI, pI)
             {
-                const label cI2 = newPointCell[pointI][pI];
-                const label fI2 = newPointCellFace[pointI][pI];
+                const label cI2 = newPointCell(pointI, pI);
+                const label fI2 = newPointCellFace(pointI, pI);
                 if (!foundSelf && cI2 == cI && fI2 == fI)
                 {
                     foundSelf = true;
@@ -278,16 +229,13 @@ void polyMeshGenModifier::addCells(const VRWGraphList& cellFaces)
                     faceI = nFaces;
                     faces.append(f);
                     ++nFaces;
+                    forAll(f, pI)
+                        pointFaces.append(f[pI], faceI);
                 }
-                forAll(f, pI)
-                    pointFaces.append(f[pI], faceI);
                 c[fI] = faceI;
                 if (cIMatch != -1)
                     cells[nCells+cIMatch][fIMatch] = faceI;
             }
-
-            forAll (f, pI)
-                pointLocked[f[pI]] = false;
         }
     }
 
