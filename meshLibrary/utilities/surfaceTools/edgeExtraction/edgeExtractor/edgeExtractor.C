@@ -1054,7 +1054,7 @@ bool edgeExtractor::distributeBoundaryFacesNormalAlignment()
             {
                 const scalar metric
                 (
-                    sqrt(maxDSq / (distanceSq[i] + VSMALL)) * normalAlignment[i]
+                    sqrt(maxDSq / (distanceSq[i] + ROOTVSMALL)) * normalAlignment[i]
                 );
 
                 if( metric > maxAlignment )
