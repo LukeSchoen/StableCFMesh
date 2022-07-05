@@ -40,7 +40,7 @@ addToRunTimeSelectionTable(objectRefinement, insideSurfaceRefinement, dictionary
 void insideSurfaceRefinement::initialiseSurfaceSearch()
 {
     closedSurface_ = triSurface(closedSurfaceFile_);
-    closedSurfaceSearch_.set(new triSurfaceSearch(closedSurface_));
+    closedSurfaceSearch_.reset(new triSurfaceSearch(closedSurface_));
     // Force it to construct the octree and preallocate data to prevent OpenMP races
     closedSurface_.edges();
     closedSurface_.localFaces();
