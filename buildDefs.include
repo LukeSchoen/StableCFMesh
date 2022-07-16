@@ -1,8 +1,4 @@
-ifeq (Gcc,$(findstring Gcc,$(WM_COMPILER)))
-    OMP_FLAGS = -DUSE_OMP -fopenmp
-else
-    OMP_FLAGS =
-endif
+OMP_FLAGS = -DUSE_OMP -fopenmp
 
 ifeq (OpenFOAM,$(findstring OpenFOAM,$(WM_PROJECT)))
     MAJ_VER := $(WM_PROJECT_VERSION:v%=%)
