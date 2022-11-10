@@ -254,7 +254,7 @@ void refineBoundaryLayers::refineFace
     forAll(facePoints, i)
     {
         facePoints[i].setSize(nLayersDir1+1);
-        facePoints[i] = -1;
+        facePoints[i] = label(-1);
     }
 
     //- add points in the matrix

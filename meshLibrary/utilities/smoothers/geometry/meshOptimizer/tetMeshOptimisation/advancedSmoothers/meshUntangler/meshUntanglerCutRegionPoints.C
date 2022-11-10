@@ -62,7 +62,7 @@ bool meshUntangler::cutRegion::findNewVertices
     const DynList<point, 64>& points = *pointsPtr_;
 
     newVertexLabel_.setSize(points.size());
-    newVertexLabel_ = -1;
+    newVertexLabel_ = label(-1);
 
     vertexDistance_.setSize(points.size());
 
@@ -122,7 +122,7 @@ void meshUntangler::cutRegion::removeCoincidentVertices()
     DynList<edge, 128>& edges = *edgesPtr_;
     DynList<label, 64> newLabelForPoint;
     newLabelForPoint.setSize(points.size());
-    newLabelForPoint = -1;
+    newLabelForPoint = label(-1);
 
     bool found(false);
     forAll(points, pI)
@@ -154,7 +154,7 @@ void meshUntangler::cutRegion::removeCoincidentVertices()
     }
 
     //- remove edges which contain the same vertex
-    newEdgeLabel_ = -1;
+    newEdgeLabel_ = label(-1);
     label edgeLabel(0);
 
     cEdgesPtr_ = new DynList<edge, 128>();

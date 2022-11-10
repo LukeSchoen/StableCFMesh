@@ -215,7 +215,7 @@ void edgeExtractor::faceEvaluator::neiFacesProcs
     const VRWGraph& faceEdges = mse.faceEdges();
 
     neiProcs.setSize(faceEdges.sizeOfRow(bfI));
-    neiProcs = Pstream::myProcNo();
+    neiProcs = label(Pstream::myProcNo());
 
     if( Pstream::parRun() )
     {
@@ -730,7 +730,7 @@ void edgeExtractor::cornerEvaluator::improveCorners
             {
                 const label patch0 = edgePatches[i].first();
                 const label patch1 = edgePatches[i].second();
-                DynList<label> patches(2);
+                DynList<label> patches(label(2));
                 patches[0] = patch0;
                 patches[1] = patch1;
 
@@ -1084,7 +1084,7 @@ bool edgeExtractor::checkCorners()
             const label beI = it.key();
 
             //- get the patches bounded by this feature edge
-            DynList<label> patches(2);
+            DynList<label> patches(label(2));
 
             if( edgeFaces.sizeOfRow(beI) == 2 )
             {
@@ -1441,7 +1441,7 @@ bool edgeExtractor::checkCorners()
                 const point& bes = points[edges[bestEdge].start()];
                 const point& bee = points[edges[bestEdge].end()];
 
-                DynList<label> patches(2);
+                DynList<label> patches(label(2));
                 patches[0] = pp.first();
                 patches[1] = pp.second();
 
@@ -1520,7 +1520,7 @@ bool edgeExtractor::checkCorners()
                             {
                                 if( facePatch_[bfI] != facePatch_[nei] )
                                 {
-                                    DynList<label> patches(2);
+                                    DynList<label> patches(label(2));
                                     patches[0] = facePatch_[bfI];
                                     patches[1] = facePatch_[nei];
                                     //- calculate deformation energy
@@ -1557,7 +1557,7 @@ bool edgeExtractor::checkCorners()
                                 {
                                     //- calculate deformation energy
                                     //- of the new state
-                                    DynList<label> patches(2);
+                                    DynList<label> patches(label(2));
                                     patches[0] = otherPatch;
                                     patches[1] = facePatch_[nei];
 
@@ -1657,7 +1657,7 @@ bool edgeExtractor::checkCorners()
                             {
                                 if( facePatch_[bfI] != facePatch_[nei] )
                                 {
-                                    DynList<label> patches(2);
+                                    DynList<label> patches(label(2));
                                     patches[0] = facePatch_[bfI];
                                     patches[1] = facePatch_[nei];
 
@@ -1695,7 +1695,7 @@ bool edgeExtractor::checkCorners()
                                 {
                                     //- calculate deformation energy
                                     //- of the new state
-                                    DynList<label> patches(2);
+                                    DynList<label> patches(label(2));
                                     patches[0] = otherPatch;
                                     patches[1] = facePatch_[nei];
 

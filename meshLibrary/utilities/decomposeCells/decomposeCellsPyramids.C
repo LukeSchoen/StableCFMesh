@@ -58,7 +58,7 @@ void decomposeCells::findAddressingForCell
         DynList<label, 8>& fEdges = faceEdges[feI];
 
         fEdges.setSize(faces[c[feI]].size());
-        fEdges = -1;
+        fEdges = label(-1);
     }
 
     forAll(c, fI)

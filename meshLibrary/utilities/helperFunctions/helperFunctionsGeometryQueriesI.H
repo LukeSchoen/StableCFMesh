@@ -251,8 +251,8 @@ inline bool isSharedEdgeConvex
     const Face2& f2
 )
 {
-    DynList<label, 3> triOwn(3);
-    DynList<label, 3> triNei(3);
+    DynList<label, 3> triOwn(label(3));
+    DynList<label, 3> triNei(label(3));
 
     forAll(f1, pI)
     {
@@ -309,8 +309,8 @@ inline scalar angleBetweenFaces
     const Face2& f2
 )
 {
-    DynList<label, 3> triOwn(3);
-    DynList<label, 3> triNei(3);
+    DynList<label, 3> triOwn(label(3));
+    DynList<label, 3> triNei(label(3));
 
     scalar angle(0.0);
     label counter(0);
@@ -789,7 +789,7 @@ inline vector triangleAreaNormal(const point& a, const point& b, const point& c)
     return 0.5*((b - a)^(c - a));
 }
 
-inline vector triangleAreaNormal(const triangle<point, point>& tri) 
+inline vector triangleAreaNormal(const triangle<point, point>& tri)
 {
     return triangleAreaNormal(tri.a(), tri.b(), tri.c());
 }
@@ -1256,7 +1256,7 @@ inline bool doTrianglesOverlap
         x /= (mag(x) + VSMALL);
         vector y = vec ^ x;
 
-        DynList<point2D, 6> poly2D(3);
+        DynList<point2D, 6> poly2D(label(3));
         poly2D[0] = point2D((tri0.a() - origin) & x, (tri0.a() - origin) & y);
         poly2D[1] = point2D((tri0.b() - origin) & x, (tri0.b() - origin) & y);
         poly2D[2] = point2D((tri0.c() - origin) & x, (tri0.c() - origin) & y);

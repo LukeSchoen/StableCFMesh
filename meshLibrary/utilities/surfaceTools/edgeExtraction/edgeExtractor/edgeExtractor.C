@@ -722,7 +722,7 @@ void edgeExtractor::moveVerticesTowardsDiscontinuities(const label nIterations)
             # endif
             forAll(bFaces, bfI)
             {
-                const vector centre = 
+                const vector centre =
                     bFaces[bfI].centre(dynamic_cast<const pointField&>(points));
 
                 point newP;
@@ -1038,7 +1038,7 @@ bool edgeExtractor::distributeBoundaryFacesNormalAlignment()
                 maxDSq = Foam::max(dSq, maxDSq);
 
                 //- calculate normal vectors
-                vector tn = 
+                vector tn =
                     help::triangleAreaNormal(surf[nearestTriangle], sPoints);
                 tn /= (mag(tn) + VSMALL);
                 vector fn = help::faceAreaNormal(bf, points);
@@ -1318,7 +1318,7 @@ scalar edgeExtractor::calculateAlignmentForEdge
 {
     scalar val(0.0);
 
-    DynList<label> patches(2);
+    DynList<label> patches(label(2));
     patches[0] = patch0;
     patches[1] = patch1;
 
@@ -1358,7 +1358,7 @@ scalar edgeExtractor::calculateDeformationMetricForEdge
 {
     scalar val(0.0);
 
-    DynList<label> patches(2);
+    DynList<label> patches(label(2));
     patches[0] = patch0;
     patches[1] = patch1;
 
@@ -1530,7 +1530,7 @@ bool edgeExtractor::checkConcaveEdgeCells()
 
                         DynList<label, 2> nFacesInPatch;
                         nFacesInPatch.setSize(2);
-                        nFacesInPatch = 0;
+                        nFacesInPatch = label(0);
 
                         DynList<bool, 2> hasPatchPoints;
                         hasPatchPoints.setSize(2);

@@ -77,10 +77,10 @@ void cartesianMeshExtractor::createPolyMesh()
     polyMeshGenModifier meshModifier(mesh_);
     faceListPMG& faces = meshModifier.facesAccess();
     cellListPMG& cells = meshModifier.cellsAccess();
- 
+
     //- generate cellLevel array
     labelIOList& cellLevel = meshModifier.cellLevelAccess();
-    cellLevel.setSize(nCells); 
+    cellLevel.setSize(nCells);
     forAll(leafCellLabel, leafI)
     {
         if
@@ -110,18 +110,18 @@ void cartesianMeshExtractor::createPolyMesh()
         {
             // We could probably deal only with the first point per cube,
             // and simplify things, but what about end effects? Elegant
-            // way around that? At the moment we end up setting each node 
+            // way around that? At the moment we end up setting each node
             // eight times...
             // Or rather use nodeLeaf addressing?
 
             // Start by initialising all points to the cube's octree level
             const meshOctreeCubeCoordinates& leaf = octree.returnLeaf(leafI);
-            
+
             forAllRow(nodeLabels, leafI, i) // This could just be the first one (?)
             {
                 pointLevel[nodeLabels(leafI, i)] = leaf.level()-octree.globalRefLevel();
             }
-            
+
             // Now, depending on the position of this cube in the parent,
             // decide which corner cell belongs one level higher
             //TODO: if this is already the top level, don't promote?
@@ -133,8 +133,8 @@ void cartesianMeshExtractor::createPolyMesh()
             direction oddY = Y % 2;
             direction oddZ = Z % 2;
             direction vrtI = oddX + oddY*2 + oddZ*4;
-            
-            // Change X,Y,Z to represent the chosen point pos rather than 
+
+            // Change X,Y,Z to represent the chosen point pos rather than
             // cell pos
             X += oddX;
             Y += oddY;
@@ -151,12 +151,12 @@ void cartesianMeshExtractor::createPolyMesh()
                 oddX = X%2;
                 oddY = Y%2;
                 oddZ = Z%2;
-            } while (!oddX && !oddY && !oddZ);             
+            } while (!oddX && !oddY && !oddZ);
             pointLevel[nodeLabels(leafI, vrtI)] -= levelsToPromote;
         }
     }
     // Don't promote above the base mesh level
-    pointLevel = max(pointLevel, 0);
+    pointLevel = max(pointLevel, label(0));
 
     //- start creating octree mesh
     cells.setSize(nCells);

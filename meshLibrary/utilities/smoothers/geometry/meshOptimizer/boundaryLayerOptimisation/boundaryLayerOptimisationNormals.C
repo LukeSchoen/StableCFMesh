@@ -251,7 +251,7 @@ void boundaryLayerOptimisation::calculateNormalVectorsSmother
         {
             const label patchI = patchesAtPoint[ptchI];
 
-            DynList<point, 128> pts(2);
+            DynList<point, 128> pts(label(2));
             DynList<partTet, 128> tets;
 
             //- create points

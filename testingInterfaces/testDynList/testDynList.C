@@ -37,7 +37,7 @@ using namespace Foam;
 int main(int argc, char *argv[])
 {
     DynList<label> a;
-    DynList<label> b(100);
+    DynList<label> b(label(100));
     DynList<scalar> c(1000, 0.1);
 
     List<vector> v(1000, vector::zero);

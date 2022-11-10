@@ -600,7 +600,7 @@ void refineBoundaryLayers::generateNewVertices()
     //- on edges of the mesh
     DynList<label> numPointsAtThread;
     numPointsAtThread.setSize(nThreads);
-    numPointsAtThread = 0;
+    numPointsAtThread = label(0);
 
     # ifdef USE_OMP
     # pragma omp parallel for num_threads(nThreads) schedule(static, 1)

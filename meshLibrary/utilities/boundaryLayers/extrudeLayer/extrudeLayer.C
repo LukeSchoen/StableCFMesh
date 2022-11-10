@@ -498,7 +498,7 @@ void extrudeLayer::createNewVertices()
 
             DynList<label> edgeGroup;
             edgeGroup.setSize(dEdges.size());
-            edgeGroup = -1;
+            edgeGroup = label(-1);
 
             //- check edge connections and store all edges which can be reached
             //- over other edges into the same group
@@ -538,7 +538,7 @@ void extrudeLayer::createNewVertices()
             //- find face groups from the groups assigned to dual edges
             DynList<label> faceGroups;
             faceGroups.setSize(pointFaces.sizeOfRow(pointI));
-            faceGroups = -1;
+            faceGroups = label(-1);
 
             forAllRow(pointFaces, pointI, pfI)
             {
@@ -618,7 +618,7 @@ void extrudeLayer::createNewVertices()
         //- assign groups to faces and cells
         DynList<label> faceGroup;
         faceGroup.setSize(pointFaces.sizeOfRow(pointI));
-        faceGroup = -1;
+        faceGroup = label(-1);
 
         label group(0);
 
@@ -783,7 +783,7 @@ void extrudeLayer::movePoints()
 
                         if( thickness_ < 0.0 )
                         {
-                            const vector c = 
+                            const vector c =
                                 f.centre(dynamic_cast<const pointField&>(points));
                             scalar d(VGREAT);
 
@@ -874,7 +874,7 @@ void extrudeLayer::movePoints()
 
                     if( thickness_ < 0.0 )
                     {
-                        const vector c = 
+                        const vector c =
                             f.centre(dynamic_cast<const pointField&>(points));
                         scalar d(VGREAT);
 
@@ -1116,7 +1116,7 @@ void extrudeLayer::createLayerCells()
         //- find labels of points
         DynList<label> origFacePoints;
         origFacePoints.setSize(pointFaces.sizeOfRow(pointI));
-        origFacePoints = -1;
+        origFacePoints = label(-1);
 
         forAllRow(pointFaces, pointI, pfI)
         {
