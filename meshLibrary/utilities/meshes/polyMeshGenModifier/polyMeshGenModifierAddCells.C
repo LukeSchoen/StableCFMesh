@@ -107,7 +107,6 @@ void polyMeshGenModifier::addCells(const VRWGraphList& cellFaces)
     faceListPMG& faces = mesh_.faces_;
     cellListPMG& cells = mesh_.cells_;
     labelIOList& cellLevel = mesh_.cellLevel_;
-    labelIOList& pointLevel = mesh_.pointLevel_;
 
     VRWGraph& pointFaces = this->pointFaces();
 
@@ -136,7 +135,6 @@ void polyMeshGenModifier::addCells(const VRWGraphList& cellFaces)
     forAll(cellFaces, cI)
     {
         cell c(cellFaces.sizeOfGraph(cI));
-        label cLevel = -1;
 
         forAll(c, fI)
         {
@@ -172,17 +170,10 @@ void polyMeshGenModifier::addCells(const VRWGraphList& cellFaces)
             else
             {
                 c[fI] = fLabel;
-                label fLevel = labelMax;
-                forAll(faces[fLabel], j)
-                {
-                    fLevel = min(fLevel, pointLevel[faces[fLabel][j]]);
-                }
-                cLevel = min(cLevel, fLevel);
             }
         }
 
         cells[nCells+cI] = c;
-        cellLevel[nCells+cI] = cLevel;
     }
 
     # pragma omp parallel for schedule(dynamic)
@@ -254,7 +245,6 @@ void polyMeshGenModifier::addCells(const VRWGraphList& cellFaces)
 
     forAll(cellFaces, cI)
     {
-        label cLevel = -1;
         faceList facesInCell(cellFaces.sizeOfGraph(cI));
         forAll(facesInCell, fI)
         {
@@ -298,17 +288,11 @@ void polyMeshGenModifier::addCells(const VRWGraphList& cellFaces)
             else
             {
                 c[fI++] = fLabel;
-                label fLevel = labelMax;
-                forAll(faces[fLabel], j)
-                {
-                    fLevel = min(fLevel, pointLevel[faces[fLabel][j]]);
-                }
-                cLevel = min(cLevel, fLevel);
             }
         }
 
         cells.append(c);
-        cellLevel.append(cLevel);
+        cellLevel.append(-1); //TODO: Get cellLevel from neighbouring cell?
         ++nCells;
     }
 
