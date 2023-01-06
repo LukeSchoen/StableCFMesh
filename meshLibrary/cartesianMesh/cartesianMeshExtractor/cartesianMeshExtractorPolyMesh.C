@@ -3,7 +3,7 @@
   \\      /  F ield         | cfMesh: A library for mesh generation
    \\    /   O peration     | Author: Franjo Juretic (franjo.juretic@c-fields.com)
     \\  /    A nd           | Copyright (C) Creative Fields, Ltd.
-     \\/     M anipulation  | Copyright (C) 2017 Oliver Oxtoby
+     \\/     M anipulation  | Copyright (C) 2017-2022 Oliver Oxtoby
 -------------------------------------------------------------------------------
 License
     This file is part of cfMesh.
@@ -102,58 +102,74 @@ void cartesianMeshExtractor::createPolyMesh()
 
     //- generate pointLevel array
     labelIOList& pointLevel = meshModifier.pointLevelAccess();
-    pointLevel.setSize(octreeCheck_.numberOfNodes());
+    pointLevel.setSize(octreeCheck_.numberOfNodes(), -1);
     const VRWGraph& nodeLabels = octreeCheck_.nodeLabels();
-    forAll(cType, leafI)
+    const VRWGraph& octreeFaces = octreeCheck_.octreeFaces();
+    const labelLongList& owner = octreeCheck_.octreeFaceOwner();
+    const labelLongList& neighbour = octreeCheck_.octreeFaceNeighbour();
+
+    forAll(octreeFaces, faceI)
     {
-        if (cType[leafI] & meshOctreeAddressing::MESHCELL)
+        const label own = owner[faceI];
+        const label nei = neighbour[faceI];
+
+        label isNbr = 0;
+        do
         {
-            // We could probably deal only with the first point per cube,
-            // and simplify things, but what about end effects? Elegant
-            // way around that? At the moment we end up setting each node
-            // eight times...
-            // Or rather use nodeLeaf addressing?
+            label leafI = (isNbr ? nei : own);
 
-            // Start by initialising all points to the cube's octree level
-            const meshOctreeCubeCoordinates& leaf = octree.returnLeaf(leafI);
-
-            forAllRow(nodeLabels, leafI, i) // This could just be the first one (?)
+            if (leafI != -1)
             {
-                pointLevel[nodeLabels(leafI, i)] = leaf.level()-octree.globalRefLevel();
+                if
+                (
+                    Pstream::parRun() &&
+                    (octree.returnLeaf(leafI).procNo() != Pstream::myProcNo())
+                )
+                {
+                    continue;
+                }
+
+                // Start by initialising all points in the cell to the cube's 
+                // octree level. A bit inefficient as we end up setting each
+                // node 8 times, but this avoids missing anything at edges
+
+                const meshOctreeCubeCoordinates& leaf = octree.returnLeaf(leafI);
+                forAllRow(nodeLabels, leafI, i)
+                {
+                    pointLevel[nodeLabels(leafI, i)] = leaf.level()-octree.globalRefLevel();
+                }
+
+                // Now, depending on the position of this cube in the parent,
+                // decide which corner cell belongs one level higher
+                label X = leaf.posX();
+                label Y = leaf.posY();
+                label Z = (leaf.posZ() < 0 ? 0 : leaf.posZ());
+                direction oddX = X % 2;
+                direction oddY = Y % 2;
+                direction oddZ = Z % 2;
+                direction vrtI = oddX + oddY*2 + oddZ*4;
+
+                // Change X,Y,Z to represent the chosen point pos rather than
+                // cell pos
+                X += oddX;
+                Y += oddY;
+                Z += oddZ;
+
+                // Decide how many levels the chosen point should be promoted
+                direction levelsToPromote = 0;
+                do
+                {
+                    levelsToPromote++;
+                    X >>= 1;
+                    Y >>= 1;
+                    Z >>= 1;
+                    oddX = X%2;
+                    oddY = Y%2;
+                    oddZ = Z%2;
+                } while (!oddX && !oddY && !oddZ);
+                pointLevel[nodeLabels(leafI, vrtI)] -= levelsToPromote;
             }
-
-            // Now, depending on the position of this cube in the parent,
-            // decide which corner cell belongs one level higher
-            //TODO: if this is already the top level, don't promote?
-            // - so that you can't coarsen past original max cell size?
-            label X = leaf.posX();
-            label Y = leaf.posY();
-            label Z = (leaf.posZ() < 0 ? 0 : leaf.posZ());
-            direction oddX = X % 2;
-            direction oddY = Y % 2;
-            direction oddZ = Z % 2;
-            direction vrtI = oddX + oddY*2 + oddZ*4;
-
-            // Change X,Y,Z to represent the chosen point pos rather than
-            // cell pos
-            X += oddX;
-            Y += oddY;
-            Z += oddZ;
-
-            // Decide how many levels the chosen point should be promoted
-            direction levelsToPromote = 0;
-            do
-            {
-                levelsToPromote++;
-                X >>= 1;
-                Y >>= 1;
-                Z >>= 1;
-                oddX = X%2;
-                oddY = Y%2;
-                oddZ = Z%2;
-            } while (!oddX && !oddY && !oddZ);
-            pointLevel[nodeLabels(leafI, vrtI)] -= levelsToPromote;
-        }
+        } while (isNbr++ == 0);
     }
     // Don't promote above the base mesh level
     pointLevel = max(pointLevel, label(0));
@@ -162,10 +178,6 @@ void cartesianMeshExtractor::createPolyMesh()
     cells.setSize(nCells);
     List<direction> nFacesInCell(nCells, direction(0));
     label nFaces(0);
-
-    const VRWGraph& octreeFaces = octreeCheck_.octreeFaces();
-    const labelLongList& owner = octreeCheck_.octreeFaceOwner();
-    const labelLongList& neighbour = octreeCheck_.octreeFaceNeighbour();
 
     //- map storing box label and a direction for each processor face
     //- The map stores data in the same order on both sides of processor
