@@ -1387,7 +1387,7 @@ void refineBoundaryLayers::generateNewCells()
     labelIOList& cellLevel = meshModifier.cellLevelAccess();
     label nCells = cells.size();
     cells.setSize(nCells+nNewCells);
-    cellLevel.setSize(nCells+nNewCells, -1); //TODO
+    cellLevel.setSize(nCells+nNewCells, -1);
 
     //- start creating new cells
     //- store the information which new cells were generated from

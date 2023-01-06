@@ -159,7 +159,8 @@ void polyMeshGen::fillInCellAndPointLevels()
 
     }
 
-    // Set point level for undefined points as max of surrounding cell levels
+    // Setting point level to a large value is a hack to avoid any refinement 
+    // being done on the affected cells
     const VRWGraph& pointCells = addressingData().pointCells();
     forAll(pointCells, pointI)
     {
@@ -167,7 +168,7 @@ void polyMeshGen::fillInCellAndPointLevels()
         {
             forAllRow(pointCells, pointI, i)
             {
-                pointLevel_[pointI] = max(pointLevel_[pointI], cellLevel_[pointCells(pointI, i)]);
+                pointLevel_[pointI] = labelMax;
             }
         }
     }
