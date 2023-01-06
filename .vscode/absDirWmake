@@ -10,15 +10,16 @@ wmake()
         # Substitute make which strips out the --no-print-directory argument
         # passed to make by wmake, so that we can tell which directory it is
         # in
-        args=""
+        #echo "make invoked as: make $@ in $PWD"
+
         for arg in "$@"
         do
             if ! [ "$arg" = "--no-print-directory" ]
             then
-                args="$args $arg"
+                args+=( "$arg" )
             fi
         done
-        $(which make) $args
+        $(which make) "${args[@]}"
     }
     export -f make
 
