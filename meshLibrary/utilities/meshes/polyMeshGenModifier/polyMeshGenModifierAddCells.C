@@ -90,7 +90,7 @@ void polyMeshGenModifier::addCells(const LongList<faceList>& cellFaces)
         }
 
         cells.append(c);
-        cellLevel.append(-1);
+        cellLevel.append(-1); //TODO: Get cell level from neighbour?
         ++nCells;
     }
 
@@ -292,7 +292,7 @@ void polyMeshGenModifier::addCells(const VRWGraphList& cellFaces)
         }
 
         cells.append(c);
-        cellLevel.append(-1);
+        cellLevel.append(-1); //TODO: Get cellLevel from neighbouring cell?
         ++nCells;
     }
 
@@ -352,7 +352,7 @@ void polyMeshGenModifier::addCell(const faceList& cellFaces)
     }
 
     cells.append(c);
-    cellLevel.append(-1);
+    cellLevel.append(-1); //TODO: Get cellLevel from adjacent cell?
     mesh_.clearOut();
 }
 

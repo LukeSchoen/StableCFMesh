@@ -127,6 +127,7 @@ void polyMeshGen::fillInCellAndPointLevels()
     // set cell levels
     bool allDone = false;
     labelList newCellLevel(cellLevel_.size(), -1);
+    const label protectedSetId = addCellSubset("meshProtectedCells");
     while (!allDone)
     {
         allDone = true;
@@ -137,6 +138,7 @@ void polyMeshGen::fillInCellAndPointLevels()
         {
             if (cellLevel_[cellI] == -1)
             {
+                cellSubsets_[protectedSetId].addElement(cellI);
                 forAllRow(cellCells, cellI, i)
                 {
                     newCellLevel[cellI] = max(newCellLevel[cellI], cellLevel_[cellCells(cellI, i)]);
@@ -159,17 +161,21 @@ void polyMeshGen::fillInCellAndPointLevels()
 
     }
 
-    // Setting point level to a large value is a hack to avoid any refinement 
-    // being done on the affected cells
+    // Set point level for undefined points as max of surrounding cell levels
     const VRWGraph& pointCells = addressingData().pointCells();
     forAll(pointCells, pointI)
     {
         if (pointLevel_[pointI] == -1)
         {
-            forAllRow(pointCells, pointI, i)
-            {
-                pointLevel_[pointI] = labelMax;
-            }
+            // Setting pointLevel to a large value to 'trick' the standard
+            // OpenFOAM refiners into not refining the surrounding cells
+            // (as they do not currently read the meshProtectedCells set).
+            pointLevel_[pointI] = labelMax;
+            //forAllRow(pointCells, pointI, i)
+            //{
+            //    pointLevel_[pointI] = max(pointLevel_[pointI], cellLevel_[pointCells(pointI, i)]);
+            ////    cellSubsets_[protectedSetId].addElement(pointCells(pointI, i));
+            //}
         }
     }
 }
