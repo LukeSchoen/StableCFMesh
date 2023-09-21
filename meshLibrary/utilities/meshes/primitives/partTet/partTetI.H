@@ -98,43 +98,37 @@ inline label partTet::whichPosition(const label pointI) const
 template<class PointField>
 inline vector partTet::Sa(const PointField& points) const
 {
-    triangle<point, point> tria
+    return help::triangleAreaNormal
     (
         points[data_[1]],
         points[data_[2]],
         points[data_[3]]
     );
-
-    return tria.normal();
-    //return triangle<point, point>(b_, c_, d_).normal();
+    //return help::triangleAreaNormal(b_, c_, d_);
 }
 
 template<class PointField>
 inline vector partTet::Sb(const PointField& points) const
 {
-    triangle<point, point> tria
+    return help::triangleAreaNormal
     (
         points[data_[0]],
         points[data_[3]],
         points[data_[2]]
     );
-
-    return tria.normal();
-    //return triangle<point, point>(a_, d_, c_).normal();
+    //return help::triangleAreaNormal(a_, d_, c_);
 }
 
 template<class PointField>
 inline vector partTet::Sc(const PointField& points) const
 {
-    triangle<point, point> tria
+    return help::triangleAreaNormal
     (
         points[data_[0]],
         points[data_[1]],
         points[data_[3]]
     );
-
-    return tria.normal();
-    //return triangle<point, point>(a_, b_, d_).normal();
+    //return help::triangleAreaNormal(a_, b_, d_);
 }
 
 template<class PointField>
