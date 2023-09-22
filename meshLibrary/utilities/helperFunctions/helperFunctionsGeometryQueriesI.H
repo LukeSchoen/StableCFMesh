@@ -1814,13 +1814,19 @@ inline bool isFaceConvexAndOk
 
 inline scalar tetQuality(const tetrahedron<point, point>& tet)
 {
-        return
-            tet.mag()
-           /(
-                8.0/(9.0*sqrt(3.0))
-               *pow3(min(tet.circumRadius(), GREAT))
-              + ROOTVSMALL
-            );
+    #if FOUNDATION >= 11
+    const scalar tetRad = tet.circumSphere().second();
+    #else
+    const scalar tetRad = tet.circumRadius();
+    #endif
+
+    return
+        tet.mag()
+        /(
+            8.0/(9.0*sqrt(3.0))
+           *pow3(min(tetRad, GREAT))
+          + ROOTVSMALL
+        );
 }
 
 inline point nearestPointOnTheEdge

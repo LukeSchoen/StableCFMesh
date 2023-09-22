@@ -26,7 +26,7 @@ ifeq (OpenFOAM,$(findstring OpenFOAM,$(WM_PROJECT)))
     endif
 
     ifeq (OpenFOAM-dev,$(findstring OpenFOAM-dev,$(WM_PROJECT_DIR)))
-        CFMESH_MACROS = -DFOUNDATION=8
+        CFMESH_MACROS = -DFOUNDATION=11
         CFMESH_LIBS = -lmeshTools -ltriSurface
     endif    
     ifeq (OpenFOAM-plus,$(findstring OpenFOAM-plus,$(WM_PROJECT_DIR)))

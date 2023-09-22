@@ -28,12 +28,12 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "argList.H"
-#include "fvCFD.H"
 #include "volFields.H"
 #include "dictionary.H"
 #include "Time.H"
 #include "pointMesh.H"
 #include "pointFields.H"
+#include "zeroGradientFvPatchFields.H"
 
 using namespace Foam;
 

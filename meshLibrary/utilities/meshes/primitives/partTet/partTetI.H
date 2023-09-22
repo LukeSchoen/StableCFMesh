@@ -169,7 +169,11 @@ inline point partTet::crcmCentre(const PointField& points) const
         points[data_[3]]
     );
 
+    #if FOUNDATION >= 11
+    return tet.circumSphere().first();
+    #else
     return tet.circumCentre();
+    #endif
 }
 
 template<class PointField>
@@ -183,7 +187,11 @@ inline scalar partTet::crcmRadius(const PointField& points) const
         points[data_[3]]
     );
 
+    #if FOUNDATION >= 11
+    return tet.circumSphere().second();
+    #else
     return tet.circumRadius();
+    #endif
 }
 
 template<class PointField>
