@@ -28,6 +28,8 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "argList.H"
+#include "fvMesh.H"
+#include "columnFvMesh.H"
 #include "volFields.H"
 #include "dictionary.H"
 #include "Time.H"
