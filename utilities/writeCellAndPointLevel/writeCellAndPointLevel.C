@@ -29,7 +29,9 @@ Description
 
 #include "argList.H"
 #include "fvMesh.H"
+#ifdef OPENFOAM
 #include "columnFvMesh.H"
+#endif
 #include "volFields.H"
 #include "dictionary.H"
 #include "Time.H"
