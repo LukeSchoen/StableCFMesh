@@ -1,6 +1,10 @@
-OMP_FLAGS = -DUSE_OMP -fopenmp
+ifeq (Darwin,$(shell uname))
+    OMP_FLAGS = -DUSE_OMP -Xclang -fopenmp
+else
+    OMP_FLAGS = -DUSE_OMP -fopenmp
+endif
 
-ifeq (OpenFOAM,$(findstring OpenFOAM,$(WM_PROJECT)))
+ifneq (,$(findstring OpenFOAM,$(WM_PROJECT)))
     MAJ_VER := $(WM_PROJECT_VERSION:v%=%)
     MAJ_VER := $(subst ., ,$(MAJ_VER))
     MAJ_VER := $(word 1,$(MAJ_VER))
@@ -25,16 +29,16 @@ ifeq (OpenFOAM,$(findstring OpenFOAM,$(WM_PROJECT)))
         endif
     endif
 
-    ifeq (OpenFOAM-dev,$(findstring OpenFOAM-dev,$(WM_PROJECT_DIR)))
+    ifneq (,$(findstring OpenFOAM-dev,$(WM_PROJECT_DIR)))
         CFMESH_MACROS = -DFOUNDATION=11
         CFMESH_LIBS = -lmeshTools -ltriSurface
     endif    
-    ifeq (OpenFOAM-plus,$(findstring OpenFOAM-plus,$(WM_PROJECT_DIR)))
+    ifneq (,$(findstring OpenFOAM-plus,$(WM_PROJECT_DIR)))
         CFMESH_MACROS =
         CFMESH_LIBS = -lmeshTools -lsurfMesh
     endif
 
-    ifeq (Int,$(findstring Int,$(WM_LABEL_OPTION)))
+    ifneq (,$(findstring Int,$(WM_LABEL_OPTION)))
         CFMESH_MACROS := $(CFMESH_MACROS) -DNoSizeType
     else
         CFMESH_MACROS := $(CFMESH_MACROS)
