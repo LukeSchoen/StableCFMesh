@@ -1,7 +1,9 @@
 ifeq (Darwin,$(shell uname))
     OMP_FLAGS = -DUSE_OMP -Xclang -fopenmp
+    OMP_LIBS = -lomp
 else
     OMP_FLAGS = -DUSE_OMP -fopenmp
+    OMP_LIBS =
 endif
 
 ifneq (,$(findstring OpenFOAM,$(WM_PROJECT)))
