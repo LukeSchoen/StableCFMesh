@@ -472,8 +472,13 @@ label groupMarking
         }
 
         //- broadcast group labels from the master to other processors
+        #if OPENFOAM >= 2406
+        Pstream::broadcast(nGroups);
+        Pstream::broadcast(allGroupsNewLabel);
+        #else
         Pstream::scatter(nGroups);
         Pstream::scatter(allGroupsNewLabel);
+        #endif
 
         //- assign correct group labels
         forAll(globalGroupLabel, groupI)
