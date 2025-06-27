@@ -59,7 +59,11 @@ int main(int argc, char *argv[])
                 IOobject
                 (
                     "cellLevel",
+                    #if FOUNDATION >= 12
+                    mesh.time().name(),
+                    #else
                     mesh.time().timeName(),
+                    #endif
                     mesh,
                     IOobject::NO_READ,
                     IOobject::AUTO_WRITE
@@ -104,7 +108,11 @@ int main(int argc, char *argv[])
                 IOobject
                 (
                     "pointLevel",
+                    #if FOUNDATION >= 12
+                    mesh.time().name(),
+                    #else
                     mesh.time().timeName(),
+                    #endif
                     mesh,
                     IOobject::NO_READ,
                     IOobject::AUTO_WRITE
