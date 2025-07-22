@@ -161,8 +161,12 @@ void partTetMesh::createParallelAddressing
     nSharedPoints -= nLocalPoints;
     nPointsAtProc[Pstream::myProcNo()] = points_.size() - nSharedPoints;
     Pstream::gatherList(nPointsAtProc);
+    #if OPENFOAM >= 2506
+    Pstream::broadcastList(nPointsAtProc);
+    #else
     Pstream::scatterList(nPointsAtProc);
-    
+    #endif
+
     for(label i=0;i<Pstream::myProcNo();++i)
         startPoint += nPointsAtProc[i];
     

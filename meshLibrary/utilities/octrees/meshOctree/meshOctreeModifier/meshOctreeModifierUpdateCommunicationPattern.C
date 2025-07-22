@@ -55,6 +55,21 @@ void meshOctreeModifier::updateCommunicationPattern()
     const LongList<meshOctreeCube*>& leaves = octree_.leaves_;
 
     //- create the list which contains ranges of addresses at a given processor
+    #if OPENFOAM >= 2506
+    List<std::pair<meshOctreeCubeCoordinates,meshOctreeCubeCoordinates>> range
+    (
+        Pstream::nProcs()
+    );
+
+    //- create the range for the current processor
+    range[Pstream::myProcNo()].first = leaves[0]->coordinates();
+    range[Pstream::myProcNo()].second = 
+        leaves[leaves.size()-1]->coordinates();
+
+    //- communicate missing ranges
+    Pstream::gatherList(range);
+    Pstream::broadcastList(range);
+    #else
     List<Pair<meshOctreeCubeCoordinates> > range(Pstream::nProcs());
 
     //- create the range for the current processor
@@ -65,6 +80,7 @@ void meshOctreeModifier::updateCommunicationPattern()
     //- communicate missing ranges
     Pstream::gatherList(range);
     Pstream::scatterList(range);
+    #endif
 
     //- find missing child cubes in the tree. These coordinates are located on
     //- other processors, and they must fit in the range of cubes located
@@ -81,7 +97,11 @@ void meshOctreeModifier::updateCommunicationPattern()
             if( procI == Pstream::myProcNo() )
                 continue;
 
+            #if OPENFOAM >= 2506
+            if( (cc >= range[procI].first) && (cc <= range[procI].second) )
+            #else
             if( (cc >= range[procI].first()) && (cc <= range[procI].second()) )
+            #endif
                 newNeiProcs.insert(procI);
         }
     }

@@ -213,7 +213,11 @@ void meshSurfaceEngine::calcGlobalBoundaryPointLabels() const
     labelList nPointsAtProc(Pstream::nProcs());
     nPointsAtProc[Pstream::myProcNo()] = nLocalPoints;
     Pstream::gatherList(nPointsAtProc);
+    #if OPENFOAM >= 2506
+    Pstream::broadcastList(nPointsAtProc);
+    #else
     Pstream::scatterList(nPointsAtProc);
+    #endif
     for(label i=0;i<Pstream::myProcNo();++i)
         startPoint += nPointsAtProc[i];
 
@@ -541,7 +545,11 @@ void meshSurfaceEngine::calcGlobalBoundaryEdgeLabels() const
     labelList nEdgesAtProc(Pstream::nProcs());
     nEdgesAtProc[Pstream::myProcNo()] = nLocalEdges;
     Pstream::gatherList(nEdgesAtProc);
+    #if OPENFOAM >= 2506
+    Pstream::broadcastList(nEdgesAtProc);
+    #else
     Pstream::scatterList(nEdgesAtProc);
+    #endif
     for(label i=0;i<Pstream::myProcNo();++i)
         startEdge += nEdgesAtProc[i];
 
@@ -789,7 +797,11 @@ void meshSurfaceEngine::calcGlobalBoundaryFaceLabels() const
     labelList nFacesAtProc(Pstream::nProcs());
     nFacesAtProc[Pstream::myProcNo()] = bFaces.size();
     Pstream::gatherList(nFacesAtProc);
+    #if OPENFOAM >= 2506
+    Pstream::broadcastList(nFacesAtProc);
+    #else
     Pstream::scatterList(nFacesAtProc);
+    #endif
 
     label startFace(0);
     for(label i=0;i<Pstream::myProcNo();++i)

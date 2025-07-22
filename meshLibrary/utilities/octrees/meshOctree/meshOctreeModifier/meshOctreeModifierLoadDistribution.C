@@ -127,7 +127,11 @@ void meshOctreeModifier::loadDistribution(const direction usedType)
     labelList procWeights(Pstream::nProcs());
     procWeights[Pstream::myProcNo()] = localNumWeighs;
     Pstream::gatherList(procWeights);
+    #if OPENFOAM >= 2506
+    Pstream::broadcastList(procWeights);
+    #else
     Pstream::scatterList(procWeights);
+    #endif
 
     for(label procI=0;procI<Pstream::myProcNo();++procI)
         doBalancing += procWeights[procI];
@@ -197,7 +201,11 @@ void meshOctreeModifier::loadDistribution(const direction usedType)
         sendToProcesssors[Pstream::myProcNo()][counter++] = it->first;
 
     Pstream::gatherList(sendToProcesssors);
+    #if OPENFOAM >= 2506
+    Pstream::broadcastList(sendToProcesssors);
+    #else
     Pstream::scatterList(sendToProcesssors);
+    #endif
 
     labelHashSet receiveFrom;
     forAll(sendToProcesssors, procI)

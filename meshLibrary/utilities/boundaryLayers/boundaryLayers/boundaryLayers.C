@@ -374,7 +374,11 @@ void boundaryLayers::findPatchesToBeTreatedTogether()
         forAll(flattenedPatches, i)
             procPatches[Pstream::myProcNo()][i] = flattenedPatches[i];
         Pstream::gatherList(procPatches);
+        #if OPENFOAM >= 2506
+        Pstream::broadcastList(procPatches);
+        #else
         Pstream::scatterList(procPatches);
+        #endif
 
         forAll(procPatches, procI)
         {

@@ -366,7 +366,11 @@ label groupMarking
         nGroupsAtProc[Pstream::myProcNo()] = nGroups;
 
         Pstream::gatherList(nGroupsAtProc);
+        #if OPENFOAM >= 2506
+        Pstream::broadcastList(nGroupsAtProc);
+        #else
         Pstream::scatterList(nGroupsAtProc);
+        #endif
 
         label startGroup(0), totalNumGroups(0);
         for(label procI=0;procI<Pstream::nProcs();++procI)

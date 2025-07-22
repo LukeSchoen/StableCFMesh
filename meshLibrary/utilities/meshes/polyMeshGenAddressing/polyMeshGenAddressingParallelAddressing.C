@@ -200,7 +200,11 @@ void polyMeshGenAddressing::calcGlobalPointLabels() const
     labelList nPointsAtProc(Pstream::nProcs());
     nPointsAtProc[Pstream::myProcNo()] = nLocalPoints;
     Pstream::gatherList(nPointsAtProc);
+    #if OPENFOAM >= 2506
+    Pstream::broadcastList(nPointsAtProc);
+    #else
     Pstream::scatterList(nPointsAtProc);
+    #endif
     for(label i=0;i<Pstream::myProcNo();++i)
         startPoint += nPointsAtProc[i];
 
@@ -321,7 +325,11 @@ void polyMeshGenAddressing::calcGlobalFaceLabels() const
     numberOfInternalFaces[Pstream::myProcNo()] = nIntFaces + nBoundaryFaces;
 
     Pstream::gatherList(numberOfInternalFaces);
+    #if OPENFOAM >= 2506
+    Pstream::broadcastList(numberOfInternalFaces);
+    #else
     Pstream::scatterList(numberOfInternalFaces);
+    #endif
     for(label i=0;i<Pstream::myProcNo();++i)
         startFace += numberOfInternalFaces[i];
 
@@ -387,7 +395,11 @@ void polyMeshGenAddressing::calcGlobalFaceLabels() const
             boundaries[patchI].patchSize();
     }
     Pstream::gatherList(numberOfBoundaryFaces);
+    #if OPENFOAM >= 2506
+    Pstream::broadcastList(numberOfBoundaryFaces);
+    #else
     Pstream::scatterList(numberOfBoundaryFaces);
+    #endif
 
     forAll(boundaries, patchI)
     {
@@ -420,7 +432,11 @@ void polyMeshGenAddressing::calcGlobalCellLabels() const
     labelList nCellsAtProc(Pstream::nProcs());
     nCellsAtProc[Pstream::myProcNo()] = globalCellLabel.size();
     Pstream::gatherList(nCellsAtProc);
+    #if OPENFOAM >= 2506
+    Pstream::broadcastList(nCellsAtProc);
+    #else
     Pstream::scatterList(nCellsAtProc);
+    #endif
     for(label i=0;i<Pstream::myProcNo();++i)
         startLabel += nCellsAtProc[i];
 
@@ -602,7 +618,11 @@ void polyMeshGenAddressing::calcGlobalEdgeLabels() const
     labelList nEdgesAtProc(Pstream::nProcs());
     nEdgesAtProc[Pstream::myProcNo()] = nLocalEdges;
     Pstream::gatherList(nEdgesAtProc);
+    #if OPENFOAM >= 2506
+    Pstream::broadcastList(nEdgesAtProc);
+    #else
     Pstream::scatterList(nEdgesAtProc);
+    #endif
     for(label i=0;i<Pstream::myProcNo();++i)
         startEdge += nEdgesAtProc[i];
 
