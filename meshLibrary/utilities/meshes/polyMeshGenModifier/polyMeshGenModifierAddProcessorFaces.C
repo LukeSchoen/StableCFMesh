@@ -149,7 +149,11 @@ label polyMeshGenModifier::addProcessorPatch(const label otherProcLabel)
     ss << Pstream::myProcNo();
     std::ostringstream ssNei;
     ssNei << otherProcLabel;
+    #if FOUNDATION >= 13
+    const word name("procBoundary"+ss.str()+"to"+ssNei.str());
+    #else
     const word name("processor"+ss.str()+"to"+ssNei.str());
+    #endif
 
     procBoundaries.set
     (

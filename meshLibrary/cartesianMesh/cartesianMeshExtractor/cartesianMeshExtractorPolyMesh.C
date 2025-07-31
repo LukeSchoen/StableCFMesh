@@ -243,7 +243,11 @@ void cartesianMeshExtractor::createPolyMesh()
         procBoundaries.setSize(procFaces.size());
         std::ostringstream ss;
         ss << Pstream::myProcNo();
+        #if FOUNDATION >= 13
+        const word name("procBoundary"+ss.str()+"to");
+        #else
         const word name("processor"+ss.str()+"to");
+        #endif
         label nProcBoundaries(nFaces), patchI(0);
 
         //- allocate memory for processor patches
