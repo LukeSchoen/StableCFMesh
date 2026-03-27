@@ -192,6 +192,11 @@ struct is_contiguous<labelledPointScalar> : std::true_type {};
 inline bool contiguous<labelledPointScalar>() {return true;}
 #endif
 
+#if OPENFOAM >= 2512
+template<>
+constexpr bool ListPolicy::is_aligned_type<labelledPointScalar>() noexcept {return false;};
+#endif
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
