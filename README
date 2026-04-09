@@ -1,54 +1,104 @@
-#                            -*- mode: org; -*-
-#
-#+TITLE:                       *cfMesh README*
-#+AUTHOR:                      Franjo Juretic.
-#+DATE:                           October 2016
-#+LINK:                  http://www.cfmesh.com
-#+OPTIONS:
+# cfMesh
 
 cfMesh is a library for mesh generation built on OpenFOAM.
 
-* License
-  cfMesh is free software; you can redistribute it and/or modify it under the
-  terms of the GNU General Public License as published by the Free Software
-  Foundation; either version 3 of the License, or (at your option) any later
-  version.
+- Website: http://www.cfmesh.com
+- Author: Franjo Juretic
+- Original Release: October 2016
 
-* System requirements
-  cfMesh is developed and tested on Linux and MS Windows.
+---
 
-* Installation
-  Binaries and the source code can be downloaded from http://sourceforge.net/projects/cfmesh/
+## License
 
-* Building from Sources (Optional)
+cfMesh is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either:
 
-  cfMesh can be built with recent versions of OpenFOAM and foam-extend. In order to build the library, a working OpenFOAM environment is needed. The build started by the Allwmake script located in this folder. It can be built with gcc and mingw compilers which support OpenMP (gcc-4.2.4 and above). Other compilers are not tested. This instructions are valid for Linux, only. We encourage Windows users to download the binary package.
+- Version 3 of the License, or
+- (at your option) any later version
 
-* Getting Started
+---
 
-  Copy the 'tutorials' examples directory in the cfMesh distribution to the
-  'run' directory.  If the OpenFOAM environment variables are set correctly,
-  then the following command will work correctly:
+## System Requirements
 
-  + cp -r tutorials $FOAM_RUN
+- Linux (primary supported platform)
+- Windows (binary builds available)
 
-  Run the first example case of a simplified car body:
+---
 
-  + cd $FOAM_RUN/tutorials/asmoOctree
-  + cartesianMesh
+## Installation
 
-  All cases have Allrun and Allclean scripts guiding you through the meshing process.
+Binaries and source code are available here:
 
-* Documentation
-  http://www.c-fields.com and in the userGuide folder.
+http://sourceforge.net/projects/cfmesh/
 
-* List of contributors
-  Franjo Juretic
-  Philippose Rajan
-  Ivor Clifford
-  
-* How to contribute
+---
 
-  It you are interested in contributing to cfMesh please send an e-mail at: info@c-fields.com
-  We gladly accept contributions, whether they are the code, validation data, documentation, promotional material, etc.
-  cfMesh development process follows the git-flow branching model, described in http://nvie.com/posts/a-successful-git-branching-model/.
+## Building from Source (Optional)
+
+cfMesh can be built with recent versions of OpenFOAM and foam-extend.
+
+### Requirements
+
+- Working OpenFOAM environment
+- Compiler with OpenMP support:
+  - GCC ≥ 4.2.4
+  - MinGW (Windows, experimental)
+
+⚠️ These instructions are primarily for Linux. Windows users are encouraged to use prebuilt binaries.
+
+### Build
+
+    ./Allwmake
+
+---
+
+## Getting Started
+
+Copy tutorial cases into your OpenFOAM run directory:
+
+    cp -r tutorials $FOAM_RUN
+
+Run the first example:
+
+    cd $FOAM_RUN/tutorials/asmoOctree
+    cartesianMesh
+
+Each case includes helper scripts:
+
+- Allrun – runs the case
+- Allclean – cleans generated files
+
+---
+
+## Documentation
+
+- http://www.c-fields.com
+- userGuide/ directory in the repository
+
+---
+
+## Contributors
+
+- Franjo Juretic
+- Philippose Rajan
+- Ivor Clifford
+- Luke Schoen
+
+---
+
+## Contributing
+
+If you are interested in contributing to cfMesh, contact:
+
+info@c-fields.com
+
+We welcome contributions including:
+
+- Code
+- Validation data
+- Documentation
+- Promotional material
+
+### Development Model
+
+cfMesh follows the git-flow branching model:
+http://nvie.com/posts/a-successful-git-branching-model/
