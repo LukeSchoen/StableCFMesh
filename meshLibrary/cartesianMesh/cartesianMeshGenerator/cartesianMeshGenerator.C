@@ -50,6 +50,10 @@ Description
 #include "polyMeshGenGeometryModification.H"
 #include "surfaceMeshGeometryModification.H"
 
+#include <cstdlib>
+#include <cstdint>
+#include <cstring>
+
 //#define DEBUG
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -57,12 +61,130 @@ Description
 namespace Foam
 {
 
+namespace
+{
+
+inline bool surfaceProjectionDebugEnabled()
+{
+    return std::getenv("CFMESH_SURFACE_PROJECTION_DEBUG_DIGEST") != nullptr;
+}
+
+inline void hashCombineU64(uint64_t& hash, const uint64_t value)
+{
+    hash ^= value + 0x9e3779b97f4a7c15ULL + (hash << 6) + (hash >> 2);
+}
+
+inline uint64_t scalarBits(const scalar value)
+{
+    uint64_t bits(0);
+    std::memcpy(&bits, &value, sizeof(bits));
+    return bits;
+}
+
+inline uint64_t pointDigest(const point& p)
+{
+    uint64_t hash(1469598103934665603ULL);
+    hashCombineU64(hash, scalarBits(p.x()));
+    hashCombineU64(hash, scalarBits(p.y()));
+    hashCombineU64(hash, scalarBits(p.z()));
+    return hash;
+}
+
+void reportSurfaceProjectionDigest(const char* name, const uint64_t digest)
+{
+    if( surfaceProjectionDebugEnabled() )
+    {
+        Info<< "surfaceProjectionDigest "
+            << name << " 0x" << hex << digest << dec << endl;
+    }
+}
+
+void reportMeshDigest(polyMeshGen& mesh, const char* name)
+{
+    if( !surfaceProjectionDebugEnabled() )
+        return;
+
+    const pointFieldPMG& points = mesh.points();
+    uint64_t meshPointDigest(1469598103934665603ULL);
+    forAll(points, pointI)
+    {
+        hashCombineU64(meshPointDigest, static_cast<uint64_t>(pointI));
+        hashCombineU64(meshPointDigest, pointDigest(points[pointI]));
+    }
+
+    reportSurfaceProjectionDigest(name, meshPointDigest);
+}
+
+void stopAfterMeshOptimisationSubstep
+(
+    polyMeshGen& mesh,
+    const char* substepName
+)
+{
+    const char* requested = std::getenv("CFMESH_STOP_AFTER_OPT_SUBSTEP");
+    if( !requested || (std::strcmp(requested, substepName) != 0) )
+        return;
+
+    Info << "Saving mesh after meshOptimisation substep "
+         << substepName << endl;
+
+    mesh.write();
+
+    std::string message("Stopping after meshOptimisation substep ");
+    message += substepName;
+    throw message;
+}
+
+void stopAfterGeneratorStep
+(
+    polyMeshGen& mesh,
+    const char* stepName
+)
+{
+    const char* requested = std::getenv("CFMESH_STOP_AFTER_GENERATOR_STEP");
+    if( !requested || (std::strcmp(requested, stepName) != 0) )
+        return;
+
+    Info << "Saving mesh after generator step "
+         << stepName << endl;
+
+    mesh.write();
+
+    std::string message("Stopping after generator step ");
+    message += stepName;
+    throw message;
+}
+
+void stopAfterSurfaceProjectionSubstep
+(
+    polyMeshGen& mesh,
+    const char* substepName
+)
+{
+    const char* requested =
+        std::getenv("CFMESH_STOP_AFTER_SURFACE_PROJECTION_SUBSTEP");
+    if( !requested || (std::strcmp(requested, substepName) != 0) )
+        return;
+
+    Info << "Saving mesh after surfaceProjection substep "
+         << substepName << endl;
+
+    mesh.write();
+
+    std::string message("Stopping after surfaceProjection substep ");
+    message += substepName;
+    throw message;
+}
+
+}
+
 // * * * * * * * * * * * * Private member functions  * * * * * * * * * * * * //
 
 void cartesianMeshGenerator::createCartesianMesh()
 {
     //- create polyMesh from octree boxes
     cartesianMeshExtractor cme(*octreePtr_, meshDict_, mesh_);
+    reportMeshDigest(mesh_, "beforeCreateCartesianMesh");
 
     if( meshDict_.found("decomposePolyhedraIntoTetsAndPyrs") )
     {
@@ -71,6 +193,7 @@ void cartesianMeshGenerator::createCartesianMesh()
     }
 
     cme.createMesh();
+    reportMeshDigest(mesh_, "afterCreateCartesianMesh");
 }
 
 void cartesianMeshGenerator::surfacePreparation()
@@ -80,6 +203,8 @@ void cartesianMeshGenerator::surfacePreparation()
     //- It also checks topology of cells after morphing is performed
     bool changed;
 
+    reportMeshDigest(mesh_, "surfacePreparationStart");
+
     do
     {
         changed = false;
@@ -87,31 +212,82 @@ void cartesianMeshGenerator::surfacePreparation()
         checkIrregularSurfaceConnections checkConnections(mesh_);
         if( checkConnections.checkAndFixIrregularConnections() )
             changed = true;
+        reportMeshDigest(mesh_, "afterCheckIrregularSurfaceConnections");
 
         if( checkNonMappableCellConnections(mesh_).removeCells() )
             changed = true;
+        reportMeshDigest(mesh_, "afterCheckNonMappableCellConnections");
 
         if( checkCellConnectionsOverFaces(mesh_).checkCellGroups() )
             changed = true;
+        reportMeshDigest(mesh_, "afterCheckCellConnectionsOverFaces");
     } while( changed );
 
     checkBoundaryFacesSharingTwoEdges(mesh_).improveTopology();
+    reportMeshDigest(mesh_, "afterCheckBoundaryFacesSharingTwoEdges");
 }
 
 void cartesianMeshGenerator::mapMeshToSurface()
 {
+    if( surfaceProjectionDebugEnabled() )
+    {
+        const pointFieldPMG& points = mesh_.points();
+        uint64_t meshPointDigest(1469598103934665603ULL);
+        forAll(points, pointI)
+        {
+            hashCombineU64(meshPointDigest, static_cast<uint64_t>(pointI));
+            hashCombineU64(meshPointDigest, pointDigest(points[pointI]));
+        }
+        reportSurfaceProjectionDigest("meshPointsBeforeMse", meshPointDigest);
+    }
+
     //- calculate mesh surface
     meshSurfaceEngine mse(mesh_);
+
+    if( surfaceProjectionDebugEnabled() )
+    {
+        const pointFieldPMG& points = mesh_.points();
+        uint64_t meshPointDigest(1469598103934665603ULL);
+        forAll(points, pointI)
+        {
+            hashCombineU64(meshPointDigest, static_cast<uint64_t>(pointI));
+            hashCombineU64(meshPointDigest, pointDigest(points[pointI]));
+        }
+        reportSurfaceProjectionDigest("meshPointsAfterMse", meshPointDigest);
+
+        const labelList& boundaryPoints = mse.boundaryPoints();
+        uint64_t boundaryPointDigest(1469598103934665603ULL);
+        forAll(boundaryPoints, bpI)
+        {
+            const label pointI = boundaryPoints[bpI];
+            hashCombineU64(boundaryPointDigest, static_cast<uint64_t>(bpI));
+            hashCombineU64(boundaryPointDigest, static_cast<uint64_t>(pointI));
+            hashCombineU64(boundaryPointDigest, pointDigest(points[pointI]));
+        }
+        reportSurfaceProjectionDigest("boundaryPoints", boundaryPointDigest);
+
+        const vectorField& faceCentres = mse.faceCentres();
+        uint64_t faceCentresDigest(1469598103934665603ULL);
+        forAll(faceCentres, faceI)
+        {
+            hashCombineU64(faceCentresDigest, static_cast<uint64_t>(faceI));
+            hashCombineU64(faceCentresDigest, pointDigest(faceCentres[faceI]));
+        }
+        reportSurfaceProjectionDigest("faceCentres", faceCentresDigest);
+    }
 
     //- pre-map mesh surface
     meshSurfaceMapper mapper(mse, *octreePtr_);
     mapper.preMapVertices();
+    stopAfterSurfaceProjectionSubstep(mesh_, "preMapVertices");
 
     //- map mesh surface on the geometry surface
     mapper.mapVerticesOntoSurface();
+    stopAfterSurfaceProjectionSubstep(mesh_, "mapVerticesOntoSurface");
 
     //- untangle surface faces
     meshSurfaceOptimizer(mse, *octreePtr_).untangleSurface();
+    stopAfterSurfaceProjectionSubstep(mesh_, "untangleSurface");
 }
 
 void cartesianMeshGenerator::extractPatches()
@@ -180,6 +356,7 @@ void cartesianMeshGenerator::optimiseFinalMesh()
             surfOpt.enforceConstraints();
 
         surfOpt.optimizeSurface();
+        stopAfterMeshOptimisationSubstep(mesh_, "surfaceOptimize");
     }
 
     deleteDemandDrivenData(octreePtr_);
@@ -190,9 +367,13 @@ void cartesianMeshGenerator::optimiseFinalMesh()
         optimizer.enforceConstraints();
 
     optimizer.optimizeMeshFV();
+    stopAfterMeshOptimisationSubstep(mesh_, "optimizeMeshFV");
     optimizer.optimizeLowQualityFaces();
+    stopAfterMeshOptimisationSubstep(mesh_, "optimizeLowQualityFaces");
     optimizer.optimizeBoundaryLayer(modSurfacePtr_==NULL);
+    stopAfterMeshOptimisationSubstep(mesh_, "optimizeBoundaryLayer");
     optimizer.untangleMeshFV();
+    stopAfterMeshOptimisationSubstep(mesh_, "untangleMeshFV");
 
     mesh_.clearAddressingData();
 
@@ -254,21 +435,25 @@ void cartesianMeshGenerator::generateMesh()
     if( controller_.runCurrentStep("templateGeneration") )
     {
         createCartesianMesh();
+        stopAfterGeneratorStep(mesh_, "templateGeneration");
     }
 
     if( controller_.runCurrentStep("surfaceTopology") )
     {
         surfacePreparation();
+        stopAfterGeneratorStep(mesh_, "surfaceTopology");
     }
 
     if( controller_.runCurrentStep("surfaceProjection") )
     {
         mapMeshToSurface();
+        stopAfterGeneratorStep(mesh_, "surfaceProjection");
     }
 
     if( controller_.runCurrentStep("patchAssignment") )
     {
         extractPatches();
+        stopAfterGeneratorStep(mesh_, "patchAssignment");
     }
 
     if( controller_.runCurrentStep("edgeExtraction") )
@@ -276,11 +461,13 @@ void cartesianMeshGenerator::generateMesh()
         mapEdgesAndCorners();
 
         optimiseMeshSurface();
+        stopAfterGeneratorStep(mesh_, "edgeExtraction");
     }
 
     if( controller_.runCurrentStep("boundaryLayerGeneration") )
     {
         generateBoundaryLayers();
+        stopAfterGeneratorStep(mesh_, "boundaryLayerGeneration");
     }
 
     if( controller_.runCurrentStep("meshOptimisation") )
@@ -288,11 +475,13 @@ void cartesianMeshGenerator::generateMesh()
         optimiseFinalMesh();
 
         projectSurfaceAfterBackScaling();
+        stopAfterGeneratorStep(mesh_, "meshOptimisation");
     }
 
     if( controller_.runCurrentStep("boundaryLayerRefinement") )
     {
         refBoundaryLayers();
+        stopAfterGeneratorStep(mesh_, "boundaryLayerRefinement");
     }
 
     fillInCellAndPointLevels();

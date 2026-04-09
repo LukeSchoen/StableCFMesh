@@ -471,6 +471,17 @@ void partTetMesh::updateVerticesSMP(const List<LongList<labelledPoint> >& np)
             const label pointI = lp.pointLabel();
 
             points_[pointI] = lp.coordinates();
+        }
+    }
+
+    forAll(np, threadI)
+    {
+        const LongList<labelledPoint>& newPoints = np[threadI];
+
+        forAll(newPoints, i)
+        {
+            const labelledPoint& lp = newPoints[i];
+            const label pointI = lp.pointLabel();
 
             forAllRow(pointTets_, pointI, ptI)
             {
@@ -482,52 +493,48 @@ void partTetMesh::updateVerticesSMP(const List<LongList<labelledPoint> >& np)
                     updateType[pt[2]] |= FACECENTRE;
             }
         }
+    }
 
-        # ifdef USE_OMP
-        # pragma omp barrier
-
-        # pragma omp flush(updateType)
-
-        //- update coordinates of CELLCENTRE and FACECENTRE vertices
-        # pragma omp for schedule(dynamic, 20)
-        # endif
-        forAll(updateType, pI)
+    //- update coordinates of CELLCENTRE and FACECENTRE vertices
+    # ifdef USE_OMP
+    # pragma omp parallel for schedule(dynamic, 20)
+    # endif
+    forAll(updateType, pI)
+    {
+        if( updateType[pI] & CELLCENTRE )
         {
-            if( updateType[pI] & CELLCENTRE )
+            point centre(vector::zero);
+            scalar cellVol(0.0);
+            forAllRow(pointTets_, pI, ptI)
             {
-                point centre(vector::zero);
-                scalar cellVol(0.0);
-                forAllRow(pointTets_, pI, ptI)
-                {
-                    const partTet& tet = tets_[pointTets_(pI, ptI)];
-                    const point c = tet.centroid(points_);
-                    const scalar vol = Foam::mag(tet.mag(points_)) + VSMALL;
+                const partTet& tet = tets_[pointTets_(pI, ptI)];
+                const point c = tet.centroid(points_);
+                const scalar vol = Foam::mag(tet.mag(points_)) + VSMALL;
 
-                    centre += c * vol;
-                    cellVol += vol;
-                }
-
-                points_[pI] = centre / cellVol;
+                centre += c * vol;
+                cellVol += vol;
             }
-            else if( updateType[pI] & FACECENTRE )
+
+            points_[pI] = centre / cellVol;
+        }
+        else if( updateType[pI] & FACECENTRE )
+        {
+            point centre(vector::zero);
+            scalar faceArea(0.0);
+            forAllRow(pointTets_, pI, ptI)
             {
-                point centre(vector::zero);
-                scalar faceArea(0.0);
-                forAllRow(pointTets_, pI, ptI)
-                {
-                    const partTet& tet = tets_[pointTets_(pI, ptI)];
-                    point c(vector::zero);
-                    for(label i=0;i<3;++i)
-                        c += points_[tet[i]];
-                    c /= 3;
-                    const scalar area = Foam::mag(tet.Sd(points_)) + VSMALL;
+                const partTet& tet = tets_[pointTets_(pI, ptI)];
+                point c(vector::zero);
+                for(label i=0;i<3;++i)
+                    c += points_[tet[i]];
+                c /= 3;
+                const scalar area = Foam::mag(tet.Sd(points_)) + VSMALL;
 
-                    centre += c * area;
-                    faceArea += area;
-                }
-
-                points_[pI] = centre / faceArea;
+                centre += c * area;
+                faceArea += area;
             }
+
+            points_[pI] = centre / faceArea;
         }
     }
 }

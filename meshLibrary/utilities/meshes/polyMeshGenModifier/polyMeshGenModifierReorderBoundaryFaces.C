@@ -27,6 +27,9 @@ Description
 
 #include "polyMeshGenModifier.H"
 #include "demandDrivenData.H"
+#include <cstdlib>
+#include <cstdint>
+#include <cstring>
 
 # ifdef USE_OMP
 #include <omp.h>
@@ -39,11 +42,60 @@ Description
 namespace Foam
 {
 
+namespace
+{
+
+inline bool templateDebugEnabled()
+{
+    return std::getenv("CFMESH_TEMPLATE_DEBUG_DIGEST") != nullptr;
+}
+
+inline void hashCombineU64(uint64_t& hash, const uint64_t value)
+{
+    hash ^= value + 0x9e3779b97f4a7c15ULL + (hash << 6) + (hash >> 2);
+}
+
+inline uint64_t scalarBits(const scalar value)
+{
+    uint64_t bits(0);
+    std::memcpy(&bits, &value, sizeof(bits));
+    return bits;
+}
+
+inline uint64_t pointDigest(const point& p)
+{
+    uint64_t hash(1469598103934665603ULL);
+    hashCombineU64(hash, scalarBits(p.x()));
+    hashCombineU64(hash, scalarBits(p.y()));
+    hashCombineU64(hash, scalarBits(p.z()));
+    return hash;
+}
+
+void reportTemplateMeshDigest(polyMeshGen& mesh, const char* stageName)
+{
+    if( !templateDebugEnabled() )
+        return;
+
+    const pointFieldPMG& points = mesh.points();
+    uint64_t digest(1469598103934665603ULL);
+    forAll(points, pointI)
+    {
+        hashCombineU64(digest, static_cast<uint64_t>(pointI));
+        hashCombineU64(digest, pointDigest(points[pointI]));
+    }
+
+    Info<< "templateDigest " << stageName
+        << " 0x" << hex << digest << dec << endl;
+}
+
+}
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 void polyMeshGenModifier::reorderBoundaryFaces()
 {
     Info << "Reordering boundary faces " << endl;
+    reportTemplateMeshDigest(mesh_, "beforeReorderBoundaryFaces");
 
     if( Pstream::parRun() )
         reorderProcBoundaryFaces();
@@ -220,6 +272,7 @@ void polyMeshGenModifier::reorderBoundaryFaces()
     mesh_.clearOut();
     this->clearOut();
 
+    reportTemplateMeshDigest(mesh_, "afterReorderBoundaryFaces");
     Info << "Finished reordering boundary faces" << endl;
 }
 

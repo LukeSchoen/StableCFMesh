@@ -265,6 +265,18 @@ void partTriMesh::updateVerticesSMP(const List<LongList<labelledPoint> >& np)
             const label pointI = lp.pointLabel();
 
             pts[pointI] = lp.coordinates();
+        }
+    }
+
+    forAll(np, threadI)
+    {
+        const LongList<labelledPoint>& newPoints = np[threadI];
+
+        forAll(newPoints, i)
+        {
+            const labelledPoint& lp = newPoints[i];
+            const label pointI = lp.pointLabel();
+
             updateType[pointI] |= SMOOTH;
 
             forAllRow(pointFacets, pointI, ptI)
@@ -405,6 +417,16 @@ void partTriMesh::updateVertices(const labelLongList& movedPoints)
             continue;
 
         pts[triPointI] = points[pointI];
+    }
+
+    forAll(movedPoints, i)
+    {
+        const label bpI = movedPoints[i];
+        const label triPointI = meshSurfacePointLabelInTriMesh_[bpI];
+
+        if( triPointI < 0 )
+            continue;
+
         updateType[triPointI] |= SMOOTH;
 
         forAllRow(pointFacets, triPointI, ptI)

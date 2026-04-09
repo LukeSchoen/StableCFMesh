@@ -27,6 +27,9 @@ Description
 
 #include "cartesianMeshExtractor.H"
 #include "meshOctree.H"
+#include <cstdlib>
+#include <cstdint>
+#include <cstring>
 
 // #define DEBUGSearch
 
@@ -34,6 +37,53 @@ Description
 
 namespace Foam
 {
+
+namespace
+{
+
+inline bool templateDebugEnabled()
+{
+    return std::getenv("CFMESH_TEMPLATE_DEBUG_DIGEST") != nullptr;
+}
+
+inline void hashCombineU64(uint64_t& hash, const uint64_t value)
+{
+    hash ^= value + 0x9e3779b97f4a7c15ULL + (hash << 6) + (hash >> 2);
+}
+
+inline uint64_t scalarBits(const scalar value)
+{
+    uint64_t bits(0);
+    std::memcpy(&bits, &value, sizeof(bits));
+    return bits;
+}
+
+inline uint64_t pointDigest(const point& p)
+{
+    uint64_t hash(1469598103934665603ULL);
+    hashCombineU64(hash, scalarBits(p.x()));
+    hashCombineU64(hash, scalarBits(p.y()));
+    hashCombineU64(hash, scalarBits(p.z()));
+    return hash;
+}
+
+void reportTemplatePointDigest(const pointFieldPMG& points, const char* stageName)
+{
+    if( !templateDebugEnabled() )
+        return;
+
+    uint64_t digest(1469598103934665603ULL);
+    forAll(points, pointI)
+    {
+        hashCombineU64(digest, static_cast<uint64_t>(pointI));
+        hashCombineU64(digest, pointDigest(points[pointI]));
+    }
+
+    Info<< "templateDigest " << stageName
+        << " 0x" << hex << digest << dec << endl;
+}
+
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -79,15 +129,19 @@ void cartesianMeshExtractor::createMesh()
     
     //- create points and pointLeaves addressing
     createPointsAndAddressing();
+    reportTemplatePointDigest(mesh_.points(), "afterCreatePointsAndAddressing");
 
     //- create the mesh
     createPolyMesh();
+    reportTemplatePointDigest(mesh_.points(), "afterCreatePolyMesh");
     
     //- decompose split-hex cells into tetrahedra and pyramids
     decomposeSplitHexesIntoTetsAndPyramids();
+    reportTemplatePointDigest(mesh_.points(), "afterDecomposeSplitHexes");
     
     //- remove unused vertices
     polyMeshGenModifier(mesh_).removeUnusedVertices();
+    reportTemplatePointDigest(mesh_.points(), "afterRemoveUnusedVertices");
     
     Info << "Mesh has :" << nl
         << mesh_.points().size() << " vertices " << nl

@@ -44,6 +44,37 @@ namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+namespace
+{
+
+inline bool preferTriangleCandidate
+(
+    const scalar candidateDistSq,
+    const label candidateTriangle,
+    const scalar bestDistSq,
+    const label bestTriangle
+)
+{
+    if( candidateDistSq < bestDistSq )
+        return true;
+
+    const scalar tieTol =
+        SMALL * Foam::max
+        (
+            scalar(1),
+            Foam::max(Foam::mag(candidateDistSq), Foam::mag(bestDistSq))
+        );
+
+    if( Foam::mag(candidateDistSq - bestDistSq) > tieTol )
+        return false;
+
+    return (bestTriangle < 0) || (candidateTriangle < bestTriangle);
+}
+
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
 void meshOctree::findNearestSurfacePoint
 (
     point& nearest,
@@ -82,7 +113,7 @@ void meshOctree::findNearestSurfacePoint
         neighbours.clear();
         findLeavesContainedInBox(bb, neighbours);
 
-        //- find nearest projection
+        DynList<label> candidateTriangles;
         forAll(neighbours, neiI)
         {
             if( !neighbours[neiI]->hasContainedElements() )
@@ -92,19 +123,44 @@ void meshOctree::findNearestSurfacePoint
                 neighbours[neiI]->slotPtr()->containedTriangles_;
             const constRow el = ct[neighbours[neiI]->containedElements()];
             forAll(el, tI)
-            {
-                const point p0 =
-                    help::nearestPointOnTheTriangle(el[tI], surface_, p);
+                candidateTriangles.append(el[tI]);
+        }
 
-                const scalar dSq = Foam::magSqr(p0 - p);
-                if( dSq < distSq )
-                {
-                    distSq = dSq;
-                    nearest = p0;
-                    nearestTriangle = el[tI];
-                    region = surface_[el[tI]].region();
-                    found = true;
-                }
+        labelList sortedCandidateTriangles(candidateTriangles.size());
+        forAll(sortedCandidateTriangles, i)
+            sortedCandidateTriangles[i] = candidateTriangles[i];
+        sort(sortedCandidateTriangles);
+
+        //- find nearest projection in a deterministic triangle order
+        label prevTriangle(-1);
+        forAll(sortedCandidateTriangles, i)
+        {
+            const label triI = sortedCandidateTriangles[i];
+            if( triI == prevTriangle )
+                continue;
+
+            prevTriangle = triI;
+
+            const point p0 =
+                help::nearestPointOnTheTriangle(triI, surface_, p);
+
+            const scalar dSq = Foam::magSqr(p0 - p);
+            if
+            (
+                preferTriangleCandidate
+                (
+                    dSq,
+                    triI,
+                    distSq,
+                    nearestTriangle
+                )
+            )
+            {
+                distSq = dSq;
+                nearest = p0;
+                nearestTriangle = triI;
+                region = surface_[triI].region();
+                found = true;
             }
         }
 
@@ -177,7 +233,7 @@ void meshOctree::findNearestSurfacePointInRegion
         neighbours.clear();
         findLeavesContainedInBox(bb, neighbours);
 
-        //- find nearest projection
+        DynList<label> candidateTriangles;
         forAll(neighbours, neiI)
         {
             if( !neighbours[neiI]->hasContainedElements() )
@@ -188,21 +244,46 @@ void meshOctree::findNearestSurfacePointInRegion
             const constRow el =
                 ct[neighbours[neiI]->containedElements()];
             forAll(el, tI)
+                candidateTriangles.append(el[tI]);
+        }
+
+        labelList sortedCandidateTriangles(candidateTriangles.size());
+        forAll(sortedCandidateTriangles, i)
+            sortedCandidateTriangles[i] = candidateTriangles[i];
+        sort(sortedCandidateTriangles);
+
+        //- find nearest projection in a deterministic triangle order
+        label prevTriangle(-1);
+        forAll(sortedCandidateTriangles, i)
+        {
+            const label triI = sortedCandidateTriangles[i];
+            if( triI == prevTriangle )
+                continue;
+
+            prevTriangle = triI;
+
+            if( surface_[triI].region() != region )
+                continue;
+
+            const point p0 =
+                help::nearestPointOnTheTriangle(triI, surface_, p);
+
+            const scalar dSq = Foam::magSqr(p0 - p);
+            if
+            (
+                preferTriangleCandidate
+                (
+                    dSq,
+                    triI,
+                    distSq,
+                    nearestTriangle
+                )
+            )
             {
-                if( surface_[el[tI]].region() != region )
-                    continue;
-
-                const point p0 =
-                    help::nearestPointOnTheTriangle(el[tI], surface_, p);
-
-                const scalar dSq = Foam::magSqr(p0 - p);
-                if( dSq < distSq )
-                {
-                    distSq = dSq;
-                    nearest = p0;
-                    nearestTriangle = el[tI];
-                    found = true;
-                }
+                distSq = dSq;
+                nearest = p0;
+                nearestTriangle = triI;
+                found = true;
             }
         }
 

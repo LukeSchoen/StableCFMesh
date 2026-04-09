@@ -51,6 +51,9 @@ Description
 #include "meshSurfaceCheckInvertedVertices.H"
 #include "meshSurfaceCheckEdgeTypes.H"
 
+#include <cstdlib>
+#include <cstring>
+
 # ifdef USE_OMP
 #include <omp.h>
 # endif
@@ -59,6 +62,31 @@ Description
 
 namespace Foam
 {
+
+namespace
+{
+
+void stopAfterEdgeExtractorSubstep
+(
+    polyMeshGen& mesh,
+    const char* substepName
+)
+{
+    const char* requested = std::getenv("CFMESH_STOP_AFTER_EDGE_EXTRACTOR");
+    if( !requested || (std::strcmp(requested, substepName) != 0) )
+        return;
+
+    Info << "Saving mesh after edgeExtractor substep "
+         << substepName << endl;
+
+    mesh.write();
+
+    std::string message("Stopping after edgeExtractor substep ");
+    message += substepName;
+    throw message;
+}
+
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *//
 // Private member functions
@@ -2130,6 +2158,12 @@ bool edgeExtractor::checkFacePatchesGeometry()
             activePointLabel.append(bp[it.key()]);
             activePoints[bp[it.key()]] = true;
         }
+        labelList sortedActivePointLabel(activePointLabel.size());
+        forAll(sortedActivePointLabel, i)
+            sortedActivePointLabel[i] = activePointLabel[i];
+        sort(sortedActivePointLabel);
+        forAll(sortedActivePointLabel, i)
+            activePointLabel[i] = sortedActivePointLabel[i];
 
         //- untangle the surface
         meshSurfaceOptimizer mso(mPart, meshOctree_);
@@ -2430,6 +2464,7 @@ void edgeExtractor::extractEdges()
     {
         Info << "No topological adjustment was needed" << endl;
     }
+    stopAfterEdgeExtractorSubstep(mesh_, "topology");
 
     Info << "Starting geometrical adjustment of patches" << endl;
     if( checkFacePatchesGeometry() )
@@ -2440,6 +2475,7 @@ void edgeExtractor::extractEdges()
     {
         Info << "No geometrical adjustment was needed" << endl;
     }
+    stopAfterEdgeExtractorSubstep(mesh_, "geometry");
 
     # ifdef DEBUGEdgeExtractor
     const triSurf* sPtr = surfaceWithPatches();
