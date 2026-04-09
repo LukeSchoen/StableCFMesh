@@ -165,52 +165,39 @@ void meshSurfaceOptimizer::smoothEdgePoints
     const labelLongList& procEdgePoints
 )
 {
-    List<LongList<labelledPoint> > newPositions(1);
-    # ifdef USE_OMP
-    newPositions.setSize(omp_get_num_procs());
-    # endif
+    const pointFieldPMG& points = surfaceEngine_.points();
+    const labelList& bPoints = surfaceEngine_.boundaryPoints();
+    pointField newPositions(edgePoints.size());
+    labelList movePoint(edgePoints.size(), 0);
 
     //- smooth edge vertices
     # ifdef USE_OMP
-    # pragma omp parallel num_threads(newPositions.size())
+    # pragma omp parallel for schedule(dynamic, 40)
     # endif
+    forAll(edgePoints, i)
     {
-        # ifdef USE_OMP
-        LongList<labelledPoint>& newPos =
-            newPositions[omp_get_thread_num()];
-        # else
-        LongList<labelledPoint>& newPos = newPositions[0];
-        # endif
+        const label bpI = edgePoints[i];
 
-        # ifdef USE_OMP
-        # pragma omp for schedule(dynamic, 40)
-        # endif
-        forAll(edgePoints, i)
-        {
-            const label bpI = edgePoints[i];
+        newPositions[i] = points[bPoints[bpI]];
 
-            if( vertexType_[bpI] & (PROCBND | LOCKED) )
-                continue;
+        if( vertexType_[bpI] & (PROCBND | LOCKED) )
+            continue;
 
-            newPos.append(labelledPoint(bpI, newEdgePositionLaplacian(bpI)));
-        }
+        newPositions[i] = newEdgePositionLaplacian(bpI);
+        movePoint[i] = 1;
     }
 
     if( Pstream::parRun() )
         edgeNodeDisplacementParallel(procEdgePoints);
 
     meshSurfaceEngineModifier surfaceModifier(surfaceEngine_);
-    forAll(newPositions, threadI)
-    {
-        const LongList<labelledPoint>& newPos = newPositions[threadI];
-
-        forAll(newPos, i)
+    forAll(edgePoints, i)
+        if( movePoint[i] )
             surfaceModifier.moveBoundaryVertexNoUpdate
             (
-                newPos[i].pointLabel(),
-                newPos[i].coordinates()
+                edgePoints[i],
+                newPositions[i]
             );
-    }
 
     surfaceModifier.updateGeometry(edgePoints);
 }
@@ -222,63 +209,38 @@ void meshSurfaceOptimizer::smoothLaplacianFC
     const bool transform
 )
 {
-    List<LongList<labelledPoint> > newPositions(1);
-    # ifdef USE_OMP
-    newPositions.setSize(omp_get_num_procs());
-    # endif
+    const pointFieldPMG& points = surfaceEngine_.points();
+    const labelList& bPoints = surfaceEngine_.boundaryPoints();
+    pointField newPositions(selectedPoints.size());
+    labelList movePoint(selectedPoints.size(), 0);
 
     # ifdef USE_OMP
-    # pragma omp parallel num_threads(newPositions.size())
+    # pragma omp parallel for schedule(dynamic, 40)
     # endif
+    forAll(selectedPoints, i)
     {
-        # ifdef USE_OMP
-        LongList<labelledPoint>& newPos =
-            newPositions[omp_get_thread_num()];
-        # else
-        LongList<labelledPoint>& newPos = newPositions[0];
-        # endif
+        const label bpI = selectedPoints[i];
 
-        # ifdef USE_OMP
-        # pragma omp for schedule(dynamic, 40)
-        # endif
-        forAll(selectedPoints, i)
-        {
-            const label bpI = selectedPoints[i];
+        newPositions[i] = points[bPoints[bpI]];
 
-            if( vertexType_[bpI] & (PROCBND | LOCKED) )
-                continue;
+        if( vertexType_[bpI] & (PROCBND | LOCKED) )
+            continue;
 
-            newPos.append
-            (
-                labelledPoint(bpI, newPositionLaplacianFC(bpI, transform))
-            );
-        }
+        newPositions[i] = newPositionLaplacianFC(bpI, transform);
+        movePoint[i] = 1;
     }
 
     if( Pstream::parRun() )
         nodeDisplacementLaplacianFCParallel(selectedProcPoints, transform);
 
     meshSurfaceEngineModifier surfaceModifier(surfaceEngine_);
-
-    # ifdef USE_OMP
-    # pragma omp parallel num_threads(newPositions.size())
-    # endif
-    {
-        # ifdef USE_OMP
-        const label threadI = omp_get_thread_num();
-        # else
-        const label threadI = 0;
-        # endif
-
-        const LongList<labelledPoint>& newPos = newPositions[threadI];
-
-        forAll(newPos, i)
+    forAll(selectedPoints, i)
+        if( movePoint[i] )
             surfaceModifier.moveBoundaryVertexNoUpdate
             (
-                newPos[i].pointLabel(),
-                newPos[i].coordinates()
+                selectedPoints[i],
+                newPositions[i]
             );
-    }
 
     surfaceModifier.updateGeometry(selectedPoints);
 }
@@ -308,10 +270,6 @@ void meshSurfaceOptimizer::smoothSurfaceOptimizer
     }
 
     meshSurfaceEngineModifier surfaceModifier(surfaceEngine_);
-
-    # ifdef USE_OMP
-    # pragma omp parallel for schedule(dynamic, 100)
-    # endif
     forAll(newPositions, i)
     {
         const label bpI = selectedPoints[i];
@@ -355,9 +313,6 @@ bool meshSurfaceOptimizer::untangleSurface
     }
 
     boolList smoothVertex(bPoints.size(), false);
-    # ifdef USE_OMP
-    # pragma omp parallel for schedule(dynamic, 50)
-    # endif
     forAll(selectedBoundaryPoints, i)
     {
         if( vertexType_[selectedBoundaryPoints[i]] & LOCKED )

@@ -32,6 +32,9 @@ Description
 #include "meshOctree.H"
 #include "labelLongList.H"
 #include "triSurf.H"
+#include <cstdlib>
+#include <cstdint>
+#include <cstring>
 
 # ifdef USE_OMP
 #include <omp.h>
@@ -47,6 +50,82 @@ Description
 
 namespace Foam
 {
+
+namespace
+{
+
+inline bool templateDebugEnabled()
+{
+    return std::getenv("CFMESH_TEMPLATE_DEBUG_DIGEST") != nullptr;
+}
+
+inline void hashCombineU64(uint64_t& hash, const uint64_t value)
+{
+    hash ^= value + 0x9e3779b97f4a7c15ULL + (hash << 6) + (hash >> 2);
+}
+
+inline uint64_t scalarBits(const scalar value)
+{
+    uint64_t bits(0);
+    std::memcpy(&bits, &value, sizeof(bits));
+    return bits;
+}
+
+inline uint64_t pointDigest(const point& p)
+{
+    uint64_t hash(1469598103934665603ULL);
+    hashCombineU64(hash, scalarBits(p.x()));
+    hashCombineU64(hash, scalarBits(p.y()));
+    hashCombineU64(hash, scalarBits(p.z()));
+    return hash;
+}
+
+void reportTemplateLabelDigest
+(
+    const VRWGraph& graph,
+    const char* stageName
+)
+{
+    if( !templateDebugEnabled() )
+        return;
+
+    uint64_t digest(1469598103934665603ULL);
+    forAll(graph, rowI)
+    {
+        hashCombineU64(digest, static_cast<uint64_t>(rowI));
+        hashCombineU64(digest, static_cast<uint64_t>(graph.sizeOfRow(rowI)));
+        forAllRow(graph, rowI, i)
+        {
+            hashCombineU64(digest, static_cast<uint64_t>(i));
+            hashCombineU64(digest, static_cast<uint64_t>(graph(rowI, i) + 1));
+        }
+    }
+
+    Info<< "templateDigest " << stageName
+        << " 0x" << hex << digest << dec << endl;
+}
+
+void reportTemplatePointDigest
+(
+    const pointField& points,
+    const char* stageName
+)
+{
+    if( !templateDebugEnabled() )
+        return;
+
+    uint64_t digest(1469598103934665603ULL);
+    forAll(points, pointI)
+    {
+        hashCombineU64(digest, static_cast<uint64_t>(pointI));
+        hashCombineU64(digest, pointDigest(points[pointI]));
+    }
+
+    Info<< "templateDigest " << stageName
+        << " 0x" << hex << digest << dec << endl;
+}
+
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -124,30 +203,44 @@ void meshOctreeAddressing::createOctreePoints() const
 {
     const VRWGraph& nodeLabels = this->nodeLabels();
     const boundBox& rootBox = octree_.rootBox();
+    labelList representativeLeaf(nNodes_, -1);
+    labelList representativeNode(nNodes_, -1);
+
+    forAll(nodeLabels, leafI)
+    {
+        forAllRow(nodeLabels, leafI, nI)
+        {
+            const label nodeI = nodeLabels(leafI, nI);
+
+            if( (nodeI >= 0) && (representativeLeaf[nodeI] == -1) )
+            {
+                representativeLeaf[nodeI] = leafI;
+                representativeNode[nodeI] = nI;
+            }
+        }
+    }
 
     octreePointsPtr_ = new pointField(nNodes_);
     pointField& octreePoints = *octreePointsPtr_;
 
-    const label nLeaves = nodeLabels.size();
     # ifdef USE_OMP
     # pragma omp parallel for schedule(guided, 100)
     # endif
-    for(label cubeI=0;cubeI<nLeaves;++cubeI)
+    for(label nodeI=0;nodeI<nNodes_;++nodeI)
     {
-        if( nodeLabels.sizeOfRow(cubeI) == 0 )
+        const label leafI = representativeLeaf[nodeI];
+        const label cornerI = representativeNode[nodeI];
+
+        if( leafI < 0 )
             continue;
 
         FixedList<point, 8> vertices;
-        const meshOctreeCubeBasic& oc = octree_.returnLeaf(cubeI);
+        const meshOctreeCubeBasic& oc = octree_.returnLeaf(leafI);
         oc.vertices(rootBox, vertices);
-
-        forAllRow(nodeLabels, cubeI, nI)
-        {
-            const label nodeI = nodeLabels(cubeI, nI);
-
-            octreePoints[nodeI] = vertices[nI];
-        }
+        octreePoints[nodeI] = vertices[cornerI];
     }
+
+    reportTemplatePointDigest(octreePoints, "octreePoints");
 }
 
 void meshOctreeAddressing::createNodeLabels() const
@@ -204,9 +297,6 @@ void meshOctreeAddressing::createNodeLabels() const
         {
             forAllRow(nodeLabels, leafI, nI)
             {
-                if( nodeLabels(leafI, nI) != -1 )
-                    continue;
-
                 FixedList<label, 8> pLeaves;
                 octree_.findLeavesForCubeVertex(leafI, nI, pLeaves);
 
@@ -240,13 +330,6 @@ void meshOctreeAddressing::createNodeLabels() const
 
                 if( (minLeaf == leafI) && validLeaf[7-nI] )
                 {
-                    forAll(pLeaves, plI)
-                        if( validLeaf[plI] )
-                        {
-                            //- set node labels to -2 not to repeat searches
-                            nodeLabels(pLeaves[plI], (7-plI)) = -2;
-                        }
-
                     ++nLocalNodes;
                 }
             }
@@ -269,9 +352,6 @@ void meshOctreeAddressing::createNodeLabels() const
         {
             forAllRow(nodeLabels, leafI, nI)
             {
-                if( nodeLabels(leafI, nI) >= 0 )
-                    continue;
-
                 FixedList<label, 8> pLeaves;
                 octree_.findLeavesForCubeVertex(leafI, nI, pLeaves);
 
@@ -395,46 +475,59 @@ void meshOctreeAddressing::createNodeLabels() const
         }
     }
     # endif
+
+    reportTemplateLabelDigest(nodeLabels, "nodeLabels");
 }
 
 void meshOctreeAddressing::createNodeLeaves() const
 {
     const List<direction>& boxType = this->boxType();
     const VRWGraph& nodeLabels = this->nodeLabels();
+    labelList representativeLeaf(nNodes_, -1);
+    labelList representativeNode(nNodes_, -1);
 
-    //- allocate nodeLeavesPtr_
-    nodeLeavesPtr_ = new FRWGraph<label, 8>(nNodes_);
-    FRWGraph<label, 8>& nodeLeaves = *nodeLeavesPtr_;
-
-    boolList storedNode(nNodes_, false);
-    # ifdef USE_OMP
-    # pragma omp parallel for schedule(dynamic, 100)
-    # endif
     forAll(nodeLabels, leafI)
     {
         forAllRow(nodeLabels, leafI, nI)
         {
             const label nodeI = nodeLabels(leafI, nI);
 
-            if( storedNode[nodeI] )
+            if( (nodeI >= 0) && (representativeLeaf[nodeI] == -1) )
+            {
+                representativeLeaf[nodeI] = leafI;
+                representativeNode[nodeI] = nI;
+            }
+        }
+    }
+
+    //- allocate nodeLeavesPtr_
+    nodeLeavesPtr_ = new FRWGraph<label, 8>(nNodes_);
+    FRWGraph<label, 8>& nodeLeaves = *nodeLeavesPtr_;
+
+    # ifdef USE_OMP
+    # pragma omp parallel for schedule(dynamic, 100)
+    # endif
+    for(label nodeI=0;nodeI<nNodes_;++nodeI)
+    {
+        const label leafI = representativeLeaf[nodeI];
+        const label cornerI = representativeNode[nodeI];
+
+        if( leafI < 0 )
+            continue;
+
+        FixedList<label, 8> pLeaves;
+        octree_.findLeavesForCubeVertex(leafI, cornerI, pLeaves);
+
+        forAll(pLeaves, plI)
+        {
+            if( pLeaves[plI] < 0 )
                 continue;
 
-            storedNode[nodeI] = true;
-
-            FixedList<label, 8> pLeaves;
-            octree_.findLeavesForCubeVertex(leafI, nI, pLeaves);
-
-            forAll(pLeaves, plI)
-            {
-                if( pLeaves[plI] < 0 )
-                    continue;
-
-                if( !boxType[pLeaves[plI]] )
-                    pLeaves[plI] = -1;
-            }
-
-            nodeLeaves.setRow(nodeI, pLeaves);
+            if( !boxType[pLeaves[plI]] )
+                pLeaves[plI] = -1;
         }
+
+        nodeLeaves.setRow(nodeI, pLeaves);
     }
 }
 

@@ -30,12 +30,40 @@ Description
 #include "meshSurfaceEngine.H"
 #include "decomposeCells.H"
 
+#include <cstdlib>
+#include <cstring>
+
 // #define DEBUGSearch
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
+
+namespace
+{
+
+void stopAfterEdgeExtractionSubstep
+(
+    polyMeshGen& mesh,
+    const char* substepName
+)
+{
+    const char* requested = std::getenv("CFMESH_STOP_AFTER_EDGE_SUBSTEP");
+    if( !requested || (std::strcmp(requested, substepName) != 0) )
+        return;
+
+    Info << "Saving mesh after edgeExtraction substep "
+         << substepName << endl;
+
+    mesh.write();
+
+    std::string message("Stopping after edgeExtraction substep ");
+    message += substepName;
+    throw message;
+}
+
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -102,10 +130,13 @@ correctEdgesBetweenPatches::correctEdgesBetweenPatches(polyMeshGen& mesh)
     //decomposeProblematicFaces();
 
     decomposeConcaveFaces();
+    stopAfterEdgeExtractionSubstep(mesh_, "decomposeConcaveFaces");
 
     patchCorrection();
+    stopAfterEdgeExtractionSubstep(mesh_, "patchCorrection");
 
     decomposeCorrectedCells();
+    stopAfterEdgeExtractionSubstep(mesh_, "decomposeCorrectedCells");
 }
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //

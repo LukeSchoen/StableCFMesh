@@ -264,10 +264,6 @@ void meshOptimizer::laplaceSmoother::updateMeshGeometry
 
     boolList chF(mesh_.faces().size(), false);
 
-    # ifdef USE_OMP
-    # pragma omp parallel for if( smoothPoints.size() > 100 ) \
-    schedule(dynamic, 20)
-    # endif
     forAll(smoothPoints, i)
     {
         const label pointI = smoothPoints[i];

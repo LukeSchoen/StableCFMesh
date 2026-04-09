@@ -35,6 +35,10 @@ Description
 #include "helperFunctions.H"
 #include "meshSurfaceOptimizer.H"
 
+#include <cstdlib>
+#include <cstdint>
+#include <cstring>
+
 # ifdef USE_OMP
 #include <omp.h>
 # endif
@@ -45,6 +49,63 @@ Description
 
 namespace Foam
 {
+
+namespace
+{
+
+inline bool preMapDebugEnabled()
+{
+    return std::getenv("CFMESH_PREMAP_DEBUG_DIGEST") != nullptr;
+}
+
+inline void hashCombineU64(uint64_t& hash, const uint64_t value)
+{
+    hash ^= value + 0x9e3779b97f4a7c15ULL + (hash << 6) + (hash >> 2);
+}
+
+inline uint64_t scalarBits(const scalar value)
+{
+    uint64_t bits(0);
+    std::memcpy(&bits, &value, sizeof(bits));
+    return bits;
+}
+
+inline uint64_t pointDigest(const point& p)
+{
+    uint64_t hash(1469598103934665603ULL);
+    hashCombineU64(hash, scalarBits(p.x()));
+    hashCombineU64(hash, scalarBits(p.y()));
+    hashCombineU64(hash, scalarBits(p.z()));
+    return hash;
+}
+
+void reportPreMapDigest(const char* name, const uint64_t digest)
+{
+    if( preMapDebugEnabled() )
+        Info<< "preMapDigest " << name << " 0x" << hex << digest << dec << endl;
+}
+
+void stopAfterPreMapSubstep
+(
+    polyMeshGen& mesh,
+    const char* substepName
+)
+{
+    const char* requested = std::getenv("CFMESH_STOP_AFTER_PREMAP_SUBSTEP");
+    if( !requested || (std::strcmp(requested, substepName) != 0) )
+        return;
+
+    Info << "Saving mesh after preMapVertices substep "
+         << substepName << endl;
+
+    mesh.write();
+
+    std::string message("Stopping after preMapVertices substep ");
+    message += substepName;
+    throw message;
+}
+
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -65,8 +126,59 @@ void meshSurfaceMapper::preMapVertices(const label nIterations)
     List<labelledPointScalar> preMapPositions(boundaryPoints.size());
     List<DynList<scalar, 6> > faceCentreDistances(bFaces.size());
 
+    if( preMapDebugEnabled() )
+    {
+        uint64_t inputPointDigest(1469598103934665603ULL);
+        forAll(boundaryPoints, bpI)
+        {
+            hashCombineU64
+            (
+                inputPointDigest,
+                static_cast<uint64_t>(boundaryPoints[bpI])
+            );
+            hashCombineU64
+            (
+                inputPointDigest,
+                pointDigest(points[boundaryPoints[bpI]])
+            );
+        }
+        reportPreMapDigest("inputPoints", inputPointDigest);
+
+        uint64_t pointFacesDigest(1469598103934665603ULL);
+        forAll(boundaryPoints, bpI)
+        {
+            hashCombineU64
+            (
+                pointFacesDigest,
+                static_cast<uint64_t>(boundaryPoints[bpI])
+            );
+            forAllRow(pointFaces, bpI, pfI)
+            {
+                hashCombineU64
+                (
+                    pointFacesDigest,
+                    static_cast<uint64_t>(pointFaces(bpI, pfI))
+                );
+                hashCombineU64
+                (
+                    pointFacesDigest,
+                    static_cast<uint64_t>(pointInFace(bpI, pfI))
+                );
+            }
+        }
+        reportPreMapDigest("pointFaces", pointFacesDigest);
+
+        uint64_t faceCentresDigest(1469598103934665603ULL);
+        forAll(faceCentres, faceI)
+        {
+            hashCombineU64(faceCentresDigest, static_cast<uint64_t>(faceI));
+            hashCombineU64(faceCentresDigest, pointDigest(faceCentres[faceI]));
+        }
+        reportPreMapDigest("faceCentres", faceCentresDigest);
+    }
+
     # ifdef USE_OMP
-    # pragma omp parallel for schedule(dynamic, 20)
+    # pragma omp parallel for if(false) schedule(dynamic, 20)
     # endif
     forAll(bFaces, bfI)
     {
@@ -85,83 +197,191 @@ void meshSurfaceMapper::preMapVertices(const label nIterations)
     {
         //- find patches in the vicinity of a boundary face
         List<DynList<label> > boundaryPointPatches(boundaryPoints.size());
+        LongList<labelPair> boundaryPointPatchPairs;
+
         # ifdef USE_OMP
-        # pragma omp parallel for schedule(dynamic, 50)
+        # pragma omp parallel if(false)
         # endif
-        forAll(bFaces, bfI)
         {
-            const face& bf = bFaces[bfI];
-            scalar boxSize(0.0);
-            forAll(bf, pI)
+            LongList<labelPair> localPairs;
+
+            # ifdef USE_OMP
+            # pragma omp for schedule(dynamic, 50)
+            # endif
+            forAll(bFaces, bfI)
             {
-                boxSize =
-                    Foam::max
+                const face& bf = bFaces[bfI];
+                scalar boxSize(0.0);
+                forAll(bf, pI)
+                {
+                    boxSize =
+                        Foam::max
+                        (
+                            boxSize,
+                            mag(faceCentres[bfI] - points[bf[pI]])
+                        );
+                }
+
+                const boundBox bb
+                (
+                    faceCentres[bfI] - vector(boxSize, boxSize, boxSize),
+                    faceCentres[bfI] + vector(boxSize, boxSize, boxSize)
+                );
+
+                DynList<label> containedLeaves;
+                meshOctree_.findLeavesContainedInBox(bb, containedLeaves);
+
+                DynList<label> patches;
+                forAll(containedLeaves, clI)
+                {
+                    DynList<label> ct;
+                    meshOctree_.containedTriangles(containedLeaves[clI], ct);
+
+                    forAll(ct, i)
+                        patches.appendIfNotIn(surf[ct[i]].region());
+                }
+
+                labelList sortedPatches(patches.size());
+                forAll(sortedPatches, i)
+                    sortedPatches[i] = patches[i];
+                sort(sortedPatches);
+
+                scalar metric(VGREAT);
+                label bestPatch(-1);
+                forAll(sortedPatches, ptchI)
+                {
+                    const scalar m =
+                        faceMetricInPatch(bfI, sortedPatches[ptchI]);
+
+                    if( m < metric )
+                    {
+                        metric = m;
+                        bestPatch = sortedPatches[ptchI];
+                    }
+                }
+
+                forAll(bf, pI)
+                    localPairs.append(labelPair(bp[bf[pI]], bestPatch));
+            }
+
+            # ifdef USE_OMP
+            # pragma omp critical
+            # endif
+            forAll(localPairs, i)
+                boundaryPointPatchPairs.append(localPairs[i]);
+        }
+
+        List<labelPair> orderedBoundaryPointPatchPairs
+        (
+            boundaryPointPatchPairs.size()
+        );
+        forAll(orderedBoundaryPointPatchPairs, i)
+            orderedBoundaryPointPatchPairs[i] = boundaryPointPatchPairs[i];
+
+        sort
+        (
+            orderedBoundaryPointPatchPairs,
+            [](const labelPair& a, const labelPair& b)
+            {
+                if( a.first() < b.first() )
+                    return true;
+                if( a.first() > b.first() )
+                    return false;
+
+                return a.second() < b.second();
+            }
+        );
+
+        forAll(orderedBoundaryPointPatchPairs, i)
+        {
+            const labelPair& pp = orderedBoundaryPointPatchPairs[i];
+            boundaryPointPatches[pp.first()].appendIfNotIn(pp.second());
+        }
+
+        if( preMapDebugEnabled() )
+        {
+            uint64_t patchDigest(1469598103934665603ULL);
+            forAll(boundaryPointPatches, bpI)
+            {
+                hashCombineU64(patchDigest, static_cast<uint64_t>(bpI));
+                forAll(boundaryPointPatches[bpI], i)
+                    hashCombineU64
                     (
-                        boxSize,
-                        mag(faceCentres[bfI] - points[bf[pI]])
+                        patchDigest,
+                        static_cast<uint64_t>(boundaryPointPatches[bpI][i] + 1)
                     );
             }
 
-            const boundBox bb
-            (
-                faceCentres[bfI] - vector(boxSize, boxSize, boxSize),
-                faceCentres[bfI] + vector(boxSize, boxSize, boxSize)
-            );
-
-            DynList<label> containedLeaves;
-            meshOctree_.findLeavesContainedInBox(bb, containedLeaves);
-
-            DynList<label> patches;
-            forAll(containedLeaves, clI)
-            {
-                DynList<label> ct;
-                meshOctree_.containedTriangles(containedLeaves[clI], ct);
-
-                forAll(ct, i)
-                    patches.appendIfNotIn(surf[ct[i]].region());
-            }
-
-            scalar metric(VGREAT);
-            label bestPatch(-1);
-            forAll(patches, ptchI)
-            {
-                const scalar m = faceMetricInPatch(bfI, patches[ptchI]);
-
-                if( m < metric )
-                {
-                    metric = m;
-                    bestPatch = patches[ptchI];
-                }
-            }
-
-            forAll(bf, pI)
-                boundaryPointPatches[bp[bf[pI]]].appendIfNotIn(bestPatch);
+            reportPreMapDigest("patches", patchDigest);
         }
 
         //- use the shrinking laplace first
         # ifdef USE_OMP
-        # pragma omp parallel for schedule(dynamic, 40)
+        # pragma omp parallel for if(false) schedule(dynamic, 40)
         # endif
         forAll(pointFaces, bpI)
         {
             labelledPointScalar lp(bpI, vector::zero, 0.0);
 
             const point& p = points[boundaryPoints[bpI]];
+            LongList<labelPair> faceOrder;
 
             forAllRow(pointFaces, bpI, pfI)
+                faceOrder.append(labelPair(pointFaces(bpI, pfI), pointInFace(bpI, pfI)));
+
+            List<labelPair> sortedFaceOrder(faceOrder.size());
+            forAll(sortedFaceOrder, i)
+                sortedFaceOrder[i] = faceOrder[i];
+
+            sort
+            (
+                sortedFaceOrder,
+                [](const labelPair& a, const labelPair& b)
+                {
+                    if( a.first() < b.first() )
+                        return true;
+                    if( a.first() > b.first() )
+                        return false;
+
+                    return a.second() < b.second();
+                }
+            );
+
+            forAll(sortedFaceOrder, i)
             {
-                const label bfI = pointFaces(bpI, pfI);
-                const point& fc = faceCentres[pointFaces(bpI, pfI)];
-                const label pos = pointInFace(bpI, pfI);
+                const label bfI = sortedFaceOrder[i].first();
+                const point& fc = faceCentres[bfI];
+                const label pos = sortedFaceOrder[i].second();
                 const scalar w
                 (
                     max(magSqr(p - fc) / faceCentreDistances[bfI][pos], SMALL)
                 );
-                lp.coordinates() += w * faceCentres[bfI];
+                lp.coordinates() += w * fc;
                 lp.scalarValue() += w;
             }
 
             preMapPositions[bpI] = lp;
+        }
+
+        if( preMapDebugEnabled() )
+        {
+            uint64_t preMapDigest(1469598103934665603ULL);
+            forAll(preMapPositions, bpI)
+            {
+                hashCombineU64(preMapDigest, static_cast<uint64_t>(bpI));
+                hashCombineU64
+                (
+                    preMapDigest,
+                    pointDigest(preMapPositions[bpI].coordinates())
+                );
+                hashCombineU64
+                (
+                    preMapDigest,
+                    scalarBits(preMapPositions[bpI].scalarValue())
+                );
+            }
+
+            reportPreMapDigest("laplace", preMapDigest);
         }
 
         //- pointer needed in case of parallel calculation
@@ -233,7 +453,7 @@ void meshSurfaceMapper::preMapVertices(const label nIterations)
         LongList<parMapperHelper> parallelBndNodes;
 
         # ifdef USE_OMP
-        # pragma omp parallel for schedule(dynamic, 50)
+        # pragma omp parallel for if(false) schedule(dynamic, 50)
         # endif
         forAll(boundaryPoints, bpI)
         {
@@ -292,14 +512,50 @@ void meshSurfaceMapper::preMapVertices(const label nIterations)
             }
         }
 
+        if( preMapDebugEnabled() )
+        {
+            uint64_t movedDigest(1469598103934665603ULL);
+            const pointFieldPMG& movedPoints = surfaceEngine_.points();
+            forAll(boundaryPoints, bpI)
+            {
+                hashCombineU64
+                (
+                    movedDigest,
+                    static_cast<uint64_t>(boundaryPoints[bpI])
+                );
+                hashCombineU64
+                (
+                    movedDigest,
+                    pointDigest(movedPoints[boundaryPoints[bpI]])
+                );
+            }
+
+            reportPreMapDigest("moved", movedDigest);
+        }
+
         //- make sure that the vertices at inter-processor boundaries
         //- are mapped onto the same location
         mapToSmallestDistance(parallelBndNodes);
+        stopAfterPreMapSubstep
+        (
+            const_cast<polyMeshGen&>(surfaceEngine_.mesh()),
+            "afterMoveBeforeUpdate"
+        );
 
         //- update the surface geometry of the
         surfaceModifier.updateGeometry();
+        stopAfterPreMapSubstep
+        (
+            const_cast<polyMeshGen&>(surfaceEngine_.mesh()),
+            "beforeUntangle"
+        );
 
         meshSurfaceOptimizer(surfaceEngine_, meshOctree_).untangleSurface();
+        stopAfterPreMapSubstep
+        (
+            const_cast<polyMeshGen&>(surfaceEngine_.mesh()),
+            "afterUntangle"
+        );
 
         surfaceModifier.updateGeometry();
     }

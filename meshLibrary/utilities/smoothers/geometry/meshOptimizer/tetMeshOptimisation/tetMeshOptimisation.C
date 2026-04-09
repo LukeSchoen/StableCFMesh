@@ -76,10 +76,6 @@ void tetMeshOptimisation::optimiseUsingKnuppMetric(const label nIterations)
 
     //- try getting rid of negative volume using the Patrik Knupp's metric
     //- which gets non-negative contributions from invertex tets, only
-    # ifdef USE_OMP
-    # pragma omp parallel for if( tets.size() > 100 ) \
-    schedule(dynamic, 10)
-    # endif
     forAll(tets, tetI)
     {
         invertedTets[tetI] = false;
@@ -95,10 +91,6 @@ void tetMeshOptimisation::optimiseUsingKnuppMetric(const label nIterations)
         //- find the number of inverted tets
         nNegative = 0;
         negativeNode = false;
-        # ifdef USE_OMP
-        # pragma omp parallel for if( tets.size() > 100 ) \
-        schedule(dynamic, 10) reduction(+ : nNegative)
-        # endif
         forAll(invertedTets, tetI)
         {
             if( invertedTets[tetI] )
@@ -176,10 +168,6 @@ void tetMeshOptimisation::optimiseUsingKnuppMetric(const label nIterations)
         nNegativeBefore = nNegative;
         nNegative = 0;
 
-        # ifdef USE_OMP
-        # pragma omp parallel for if( tets.size() > 100 ) \
-        schedule(dynamic, 10) reduction(+ : nNegative)
-        # endif
         forAll(tets, tetI)
         {
             helper[tetI] = false;
@@ -212,10 +200,6 @@ void tetMeshOptimisation::optimiseUsingMeshUntangler(const label nIterations)
     boolList negativeNode(smoothVertex.size()), invertedTets(tets.size());
 
     //- try getting rid of negative volume using the untangler
-    # ifdef USE_OMP
-    # pragma omp parallel for if( tets.size() > 100 ) \
-    schedule(dynamic, 10)
-    # endif
     forAll(tets, tetI)
     {
         invertedTets[tetI] = false;
@@ -231,10 +215,6 @@ void tetMeshOptimisation::optimiseUsingMeshUntangler(const label nIterations)
         //- find the number of inverted tets
         nNegative = 0;
         negativeNode = false;
-        # ifdef USE_OMP
-        # pragma omp parallel for if( tets.size() > 100 ) \
-        schedule(dynamic, 10) reduction(+ : nNegative)
-        # endif
         forAll(invertedTets, tetI)
         {
             if( invertedTets[tetI] )
@@ -310,10 +290,6 @@ void tetMeshOptimisation::optimiseUsingMeshUntangler(const label nIterations)
         boolList helper(invertedTets.size());
         nNegativeBefore = nNegative;
         nNegative = 0;
-        # ifdef USE_OMP
-        # pragma omp parallel for if( tets.size() > 100 ) \
-        schedule(dynamic, 10) reduction(+ : nNegative)
-        # endif
         forAll(tets, tetI)
         {
             helper[tetI] = false;

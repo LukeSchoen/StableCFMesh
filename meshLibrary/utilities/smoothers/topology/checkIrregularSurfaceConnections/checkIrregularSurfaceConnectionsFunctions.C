@@ -77,6 +77,10 @@ bool checkIrregularSurfaceConnections::checkAndFixCellGroupsAtBndVertices
     //- are visited over faces from to the other
     label nBadVertices(0);
     DynList<label> frontCells;
+    labelList splitPointNumGroups(bPoints.size(), 0);
+    List<labelList> splitPointCellGroups;
+    if( removeConnections )
+        splitPointCellGroups.setSize(bPoints.size());
 
     const label size = bPoints.size();
     # ifdef USE_OMP
@@ -129,45 +133,61 @@ bool checkIrregularSurfaceConnections::checkAndFixCellGroupsAtBndVertices
 
         if( nGroup != 1 )
         {
-            # ifdef USE_OMP
-            # pragma omp critical
-            # endif
+            splitPointNumGroups[bpI] = nGroup;
+
+            if( removeConnections )
             {
-                ++nBadVertices;
-                badVertices.insert(pointI);
+                labelList& localGroups = splitPointCellGroups[bpI];
+                localGroups.setSize(pointCells.sizeOfRow(pointI));
 
-                if( removeConnections )
-                {
-                    const label nPoints = points.size();
-                    forAllRow(pointCells, pointI, pcI)
-                    {
-                        const label cellI = pointCells(pointI, pcI);
-
-                        if( cellGroup[cellI] != 0 )
-                        {
-                            const cell& c = cells[cellI];
-
-                            forAll(c, fI)
-                            {
-                                face& f = faces[c[fI]];
-
-                                const label pos = f.which(pointI);
-
-                                if( pos > -1 )
-                                    f[pos] = nPoints + cellGroup[cellI] - 1;
-                            }
-                        }
-                    }
-
-                    for(label i=1;i<nGroup;++i)
-                    {
-                        const point p = points[pointI];
-                        points.append(p);
-                        const label level = pointLevel[pointI];
-                        pointLevel.append(level);
-                    }
-                }
+                forAllRow(pointCells, pointI, pcI)
+                    localGroups[pcI] = cellGroup[pointCells(pointI, pcI)];
             }
+        }
+    }
+
+    forAll(splitPointNumGroups, bpI)
+    {
+        const label nGroup = splitPointNumGroups[bpI];
+        if( nGroup <= 1 )
+            continue;
+
+        const label pointI = bPoints[bpI];
+
+        ++nBadVertices;
+        badVertices.insert(pointI);
+
+        if( !removeConnections )
+            continue;
+
+        const label nPoints = points.size();
+        const labelList& cellGroups = splitPointCellGroups[bpI];
+
+        forAllRow(pointCells, pointI, pcI)
+        {
+            const label cellI = pointCells(pointI, pcI);
+            const label groupI = cellGroups[pcI];
+
+            if( groupI == 0 )
+                continue;
+
+            const cell& c = cells[cellI];
+
+            forAll(c, fI)
+            {
+                face& f = faces[c[fI]];
+
+                const label pos = f.which(pointI);
+
+                if( pos > -1 )
+                    f[pos] = nPoints + groupI - 1;
+            }
+        }
+
+        for(label i=1;i<nGroup;++i)
+        {
+            points.append(points[pointI]);
+            pointLevel.append(pointLevel[pointI]);
         }
     }
 

@@ -272,7 +272,6 @@ void meshSurfaceEngine::calculateBoundaryFacePatches() const
 
 void meshSurfaceEngine::calculatePointFaces() const
 {
-    //- fill pointFacesAddr
     if( !pointFacesPtr_ )
         pointFacesPtr_ = new VRWGraph();
     VRWGraph& pointFacesAddr = *pointFacesPtr_;
@@ -283,201 +282,32 @@ void meshSurfaceEngine::calculatePointFaces() const
 
     const labelList& bPoints = this->boundaryPoints();
     const faceList::subList& bFaces = this->boundaryFaces();
-
-    //- create boundary points
     const labelList& bp = this->bp();
 
-    labelLongList npf;
+    labelLongList npf(bPoints.size(), 0);
 
-    # ifdef USE_OMP
-    label nThreads = 3 * omp_get_num_procs();
-    if( bPoints.size() < 1000 )
-        nThreads = 1;
-    # else
-    const label nThreads(1);
-    # endif
-
-    label minRow(INT_MAX), maxRow(0);
-    List<List<LongList<labelPair> > > dataForOtherThreads(nThreads);
-
-    # ifdef USE_OMP
-    # pragma omp parallel num_threads(nThreads)
-    # endif
+    forAll(bFaces, bfI)
     {
-        # ifdef USE_OMP
-        const label threadI = omp_get_thread_num();
-        # else
-        const label threadI(0);
-        # endif
+        const face& bf = bFaces[bfI];
+        forAll(bf, pI)
+            ++npf[bp[bf[pI]]];
+    }
 
-        List<LongList<labelPair> >& dot = dataForOtherThreads[threadI];
-        dot.setSize(nThreads);
+    VRWGraphSMPModifier(pointFacesAddr).setSizeAndRowSize(npf);
+    VRWGraphSMPModifier(pointInFaceAddr).setSizeAndRowSize(npf);
 
-        //- find min and max entry in the graph
-        //- they are used for assigning ranges of values local for each process
-        label localMinRow(minRow), localMaxRow(0);
-        # ifdef USE_OMP
-        # pragma omp for schedule(static)
-        # endif
-        forAll(bFaces, bfI)
+    forAll(npf, i)
+        npf[i] = 0;
+
+    forAll(bFaces, bfI)
+    {
+        const face& bf = bFaces[bfI];
+        forAll(bf, pI)
         {
-            const face& bf = bFaces[bfI];
-            forAll(bf, pI)
-            {
-                const label bpI = bp[bf[pI]];
-                localMaxRow = Foam::max(localMaxRow, bpI);
-                localMinRow = Foam::min(localMinRow, bpI);
-            }
-        }
-
-        ++localMaxRow;
-
-        # ifdef USE_OMP
-        # pragma omp critical
-        # endif
-        {
-            minRow = Foam::min(minRow, localMinRow);
-            minRow = Foam::max(minRow, 0);
-            maxRow = Foam::max(maxRow, localMaxRow);
-
-            npf.setSize(maxRow);
-        }
-
-        # ifdef USE_OMP
-        # pragma omp barrier
-        # endif
-
-        //- initialise appearances
-        # ifdef USE_OMP
-        # pragma omp for schedule(static)
-        # endif
-        for(label i=0;i<maxRow;++i)
-            npf[i] = 0;
-
-        # ifdef USE_OMP
-        # pragma omp barrier
-        # endif
-
-        const label range = (maxRow - minRow) / nThreads + 1;
-        const label localMin = minRow + threadI * range;
-        const label localMax = Foam::min(localMin + range, maxRow);
-
-        //- find the number of appearances of each element in the original graph
-        # ifdef USE_OMP
-        # pragma omp for schedule(static)
-        # endif
-        forAll(bFaces, bfI)
-        {
-            const face& bf = bFaces[bfI];
-
-            forAll(bf, pI)
-            {
-                const label bpI = bp[bf[pI]];
-
-                const label threadNo = (bpI - minRow) / range;
-
-                if( threadNo == threadI )
-                {
-                    ++npf[bpI];
-                }
-                else
-                {
-                    dot[threadNo].append(labelPair(bpI, bfI));
-                }
-            }
-        }
-
-        # ifdef USE_OMP
-        # pragma omp barrier
-        # endif
-
-        //- count the appearances which are not local to the processor
-        for(label i=0;i<nThreads;++i)
-        {
-            const LongList<labelPair>& data =
-                dataForOtherThreads[i][threadI];
-
-            forAll(data, j)
-                ++npf[data[j].first()];
-        }
-
-        # ifdef USE_OMP
-        # pragma omp barrier
-        # endif
-
-        //- allocate graph
-        # ifdef USE_OMP
-        # pragma omp master
-        # endif
-        {
-            VRWGraphSMPModifier(pointFacesAddr).setSizeAndRowSize(npf);
-            VRWGraphSMPModifier(pointInFaceAddr).setSizeAndRowSize(npf);
-        }
-
-        # ifdef USE_OMP
-        # pragma omp barrier
-        # endif
-
-        for(label i=localMin;i<localMax;++i)
-            npf[i] = 0;
-
-        //- start filling reverse addressing graph
-        //- update data from processors with smaller labels
-        for(label i=0;i<threadI;++i)
-        {
-            const LongList<labelPair>& data =
-                dataForOtherThreads[i][threadI];
-
-            forAll(data, j)
-            {
-                const label bpI = data[j].first();
-                const label bfI = data[j].second();
-
-                pointFacesAddr(bpI, npf[bpI]) = bfI;
-                pointInFaceAddr(bpI, npf[bpI]) =
-                    bFaces[bfI].which(bPoints[bpI]);
-
-                ++npf[bpI];
-            }
-        }
-
-        //- update data local to the processor
-        # ifdef USE_OMP
-        # pragma omp for schedule(static)
-        # endif
-        forAll(bFaces, bfI)
-        {
-            const face& bf = bFaces[bfI];
-
-            forAll(bf, pI)
-            {
-                const label bpI = bp[bf[pI]];
-
-                if( (bpI >= localMin) && (bpI < localMax) )
-                {
-                    pointInFaceAddr(bpI, npf[bpI]) = pI;
-                    pointFacesAddr(bpI, npf[bpI]++) = bfI;
-                }
-            }
-        }
-
-        //- update data from the processors with higher labels
-        for(label i=threadI+1;i<nThreads;++i)
-        {
-            const LongList<labelPair>& data =
-                dataForOtherThreads[i][threadI];
-
-            forAll(data, j)
-            {
-                const label bpI = data[j].first();
-                const label bfI = data[j].second();
-
-                pointFacesAddr(bpI, npf[bpI]) = bfI;
-                pointInFaceAddr(bpI, npf[bpI]) =
-                    bFaces[bfI].which(bPoints[bpI]);
-
-                ++npf[bpI];
-            }
+            const label bpI = bp[bf[pI]];
+            pointFacesAddr(bpI, npf[bpI]) = bfI;
+            pointInFaceAddr(bpI, npf[bpI]) = pI;
+            ++npf[bpI];
         }
     }
 
