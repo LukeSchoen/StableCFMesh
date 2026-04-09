@@ -85,6 +85,10 @@ class meshOctreeAddressing
     
         //- node labels
         mutable VRWGraph* nodeLabelsPtr_;
+
+        //- representative leaf/corner for each node
+        mutable labelList* nodeRepresentativeLeavesPtr_;
+        mutable labelList* nodeRepresentativeCornersPtr_;
     
         //- node leaves
         mutable FRWGraph<label, 8>* nodeLeavesPtr_;
@@ -161,6 +165,9 @@ class meshOctreeAddressing
         
         //- calculate nodeLabelsPtr_
         void createNodeLabels() const;
+
+        //- representative leaf/corner per node
+        void createNodeRepresentatives() const;
     
         //- calculate nodeLeavesPtr_
         void createNodeLeaves() const;

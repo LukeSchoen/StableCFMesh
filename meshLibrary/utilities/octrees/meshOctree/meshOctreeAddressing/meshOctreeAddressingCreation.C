@@ -54,6 +54,13 @@ namespace Foam
 namespace
 {
 
+struct octreeOwnedNodeData
+{
+    label leafI;
+    label cornerI;
+    FixedList<label, 8> pointLeaves;
+};
+
 inline bool templateDebugEnabled()
 {
     return std::getenv("CFMESH_TEMPLATE_DEBUG_DIGEST") != nullptr;
@@ -78,6 +85,28 @@ inline uint64_t pointDigest(const point& p)
     hashCombineU64(hash, scalarBits(p.y()));
     hashCombineU64(hash, scalarBits(p.z()));
     return hash;
+}
+
+inline point cubeCornerPoint
+(
+    const meshOctreeCubeBasic& cube,
+    const boundBox& rootBox,
+    const label cornerI
+)
+{
+    const vector tol = SMALL * (rootBox.max() - rootBox.min());
+
+    point minCorner, maxCorner;
+    cube.cubeBox(rootBox, minCorner, maxCorner);
+    minCorner -= tol;
+    maxCorner += tol;
+
+    return point
+    (
+        (cornerI & 1) ? maxCorner.x() : minCorner.x(),
+        (cornerI & 2) ? maxCorner.y() : minCorner.y(),
+        (cornerI & 4) ? maxCorner.z() : minCorner.z()
+    );
 }
 
 void reportTemplateLabelDigest
@@ -199,12 +228,18 @@ void writeOctreeToVTK
 }
 # endif
 
-void meshOctreeAddressing::createOctreePoints() const
+void meshOctreeAddressing::createNodeRepresentatives() const
 {
+    if( nodeRepresentativeLeavesPtr_ )
+        return;
+
     const VRWGraph& nodeLabels = this->nodeLabels();
-    const boundBox& rootBox = octree_.rootBox();
-    labelList representativeLeaf(nNodes_, -1);
-    labelList representativeNode(nNodes_, -1);
+
+    nodeRepresentativeLeavesPtr_ = new labelList(nNodes_, -1);
+    nodeRepresentativeCornersPtr_ = new labelList(nNodes_, -1);
+
+    labelList& representativeLeaf = *nodeRepresentativeLeavesPtr_;
+    labelList& representativeNode = *nodeRepresentativeCornersPtr_;
 
     forAll(nodeLabels, leafI)
     {
@@ -219,12 +254,22 @@ void meshOctreeAddressing::createOctreePoints() const
             }
         }
     }
+}
+
+void meshOctreeAddressing::createOctreePoints() const
+{
+    if( !nodeRepresentativeLeavesPtr_ )
+        createNodeRepresentatives();
+
+    const boundBox& rootBox = octree_.rootBox();
+    const labelList& representativeLeaf = *nodeRepresentativeLeavesPtr_;
+    const labelList& representativeNode = *nodeRepresentativeCornersPtr_;
 
     octreePointsPtr_ = new pointField(nNodes_);
     pointField& octreePoints = *octreePointsPtr_;
 
     # ifdef USE_OMP
-    # pragma omp parallel for schedule(guided, 100)
+    # pragma omp parallel for schedule(static)
     # endif
     for(label nodeI=0;nodeI<nNodes_;++nodeI)
     {
@@ -234,10 +279,8 @@ void meshOctreeAddressing::createOctreePoints() const
         if( leafI < 0 )
             continue;
 
-        FixedList<point, 8> vertices;
         const meshOctreeCubeBasic& oc = octree_.returnLeaf(leafI);
-        oc.vertices(rootBox, vertices);
-        octreePoints[nodeI] = vertices[cornerI];
+        octreePoints[nodeI] = cubeCornerPoint(oc, rootBox, cornerI);
     }
 
     reportTemplatePointDigest(octreePoints, "octreePoints");
@@ -265,6 +308,7 @@ void meshOctreeAddressing::createNodeLabels() const
     //- start creating node labels
     nNodes_ = 0;
     DynList<label> numLocalNodes;
+    DynList<DynList<octreeOwnedNodeData> > localOwnedNodes;
     # ifdef USE_OMP
     # pragma omp parallel
     # endif
@@ -280,7 +324,10 @@ void meshOctreeAddressing::createNodeLabels() const
         # ifdef USE_OMP
         # pragma omp master
         # endif
-        numLocalNodes.setSize(nThreads);
+        {
+            numLocalNodes.setSize(nThreads);
+            localOwnedNodes.setSize(nThreads);
+        }
 
         # ifdef USE_OMP
         # pragma omp barrier
@@ -288,10 +335,12 @@ void meshOctreeAddressing::createNodeLabels() const
 
         //- count the number of nodes local to each process
         label& nLocalNodes = numLocalNodes[threadI];
+        DynList<octreeOwnedNodeData>& ownedNodes = localOwnedNodes[threadI];
         nLocalNodes = 0;
+        ownedNodes.clear();
 
         # ifdef USE_OMP
-        # pragma omp for schedule(static, 100)
+        # pragma omp for schedule(static)
         # endif
         forAll(nodeLabels, leafI)
         {
@@ -331,6 +380,13 @@ void meshOctreeAddressing::createNodeLabels() const
                 if( (minLeaf == leafI) && validLeaf[7-nI] )
                 {
                     ++nLocalNodes;
+
+                    octreeOwnedNodeData data;
+                    data.leafI = leafI;
+                    data.cornerI = nI;
+                    forAll(pLeaves, plI)
+                        data.pointLeaves[plI] = validLeaf[plI] ? pLeaves[plI] : -1;
+                    ownedNodes.append(data);
                 }
             }
         }
@@ -340,72 +396,53 @@ void meshOctreeAddressing::createNodeLabels() const
         # pragma omp barrier
         # endif
 
+        # ifdef USE_OMP
+        # pragma omp master
+        # endif
+        {
+            nNodes_ = 0;
+            forAll(numLocalNodes, i)
+                nNodes_ += numLocalNodes[i];
+
+            deleteDemandDrivenData(nodeRepresentativeLeavesPtr_);
+            deleteDemandDrivenData(nodeRepresentativeCornersPtr_);
+            nodeRepresentativeLeavesPtr_ = new labelList(nNodes_, -1);
+            nodeRepresentativeCornersPtr_ = new labelList(nNodes_, -1);
+        }
+
+        # ifdef USE_OMP
+        # pragma omp barrier
+        # endif
+
+        labelList& representativeLeaf = *nodeRepresentativeLeavesPtr_;
+        labelList& representativeNode = *nodeRepresentativeCornersPtr_;
+
         label startNode(0);
         for(label i=0;i<threadI;++i)
             startNode += numLocalNodes[i];
 
-        //- start creating node labels
-        # ifdef USE_OMP
-        # pragma omp for schedule(static, 100)
-        # endif
-        forAll(nodeLabels, leafI)
+        forAll(ownedNodes, nodeDataI)
         {
-            forAllRow(nodeLabels, leafI, nI)
-            {
-                FixedList<label, 8> pLeaves;
-                octree_.findLeavesForCubeVertex(leafI, nI, pLeaves);
+            const octreeOwnedNodeData& data = ownedNodes[nodeDataI];
 
-                FixedList<bool, 8> validLeaf(true);
-                label minLeaf(leafI);
-                forAll(pLeaves, plI)
+            forAll(data.pointLeaves, plI)
+                if( data.pointLeaves[plI] >= 0 )
                 {
-                    if( pLeaves[plI] > -1 )
-                    {
-                        for(label i=plI+1;i<8;++i)
-                            if( pLeaves[plI] == pLeaves[i] )
-                            {
-                                validLeaf[plI] = false;
-                                validLeaf[i] = false;
-                            }
-
-                        if( !boxType[pLeaves[plI]] )
-                        {
-                            validLeaf[plI] = false;
-                            pLeaves[plI] = -1;
-                        }
-
-                        if( validLeaf[plI] )
-                            minLeaf = Foam::min(minLeaf, pLeaves[plI]);
-                    }
-                    else
-                    {
-                        validLeaf[plI] = false;
-                    }
+                    //- store the vertex at the corresponding
+                    //- location in the cube
+                    nodeLabels(data.pointLeaves[plI], (7-plI)) = startNode;
                 }
 
-                if( (minLeaf == leafI) && validLeaf[7-nI] )
-                {
-                    forAll(pLeaves, plI)
-                        if( validLeaf[plI] )
-                        {
-                            //- store the vertex at the corresponding
-                            //- location in the cube
-                            nodeLabels(pLeaves[plI], (7-plI)) = startNode;
-                        }
+            representativeLeaf[startNode] = data.leafI;
+            representativeNode[startNode] = data.cornerI;
 
-                    //- store vertex label
-                    ++startNode;
-                }
-            }
+            //- store vertex label
+            ++startNode;
         }
 
-        //- set the number of nodes
         # ifdef USE_OMP
-        # pragma omp critical
+        # pragma omp barrier
         # endif
-        {
-            nNodes_ = Foam::max(nNodes_, startNode);
-        }
     }
 
     # ifdef DEBUGVrt
@@ -482,30 +519,18 @@ void meshOctreeAddressing::createNodeLabels() const
 void meshOctreeAddressing::createNodeLeaves() const
 {
     const List<direction>& boxType = this->boxType();
-    const VRWGraph& nodeLabels = this->nodeLabels();
-    labelList representativeLeaf(nNodes_, -1);
-    labelList representativeNode(nNodes_, -1);
+    if( !nodeRepresentativeLeavesPtr_ )
+        createNodeRepresentatives();
 
-    forAll(nodeLabels, leafI)
-    {
-        forAllRow(nodeLabels, leafI, nI)
-        {
-            const label nodeI = nodeLabels(leafI, nI);
-
-            if( (nodeI >= 0) && (representativeLeaf[nodeI] == -1) )
-            {
-                representativeLeaf[nodeI] = leafI;
-                representativeNode[nodeI] = nI;
-            }
-        }
-    }
+    const labelList& representativeLeaf = *nodeRepresentativeLeavesPtr_;
+    const labelList& representativeNode = *nodeRepresentativeCornersPtr_;
 
     //- allocate nodeLeavesPtr_
     nodeLeavesPtr_ = new FRWGraph<label, 8>(nNodes_);
     FRWGraph<label, 8>& nodeLeaves = *nodeLeavesPtr_;
 
     # ifdef USE_OMP
-    # pragma omp parallel for schedule(dynamic, 100)
+    # pragma omp parallel for schedule(static)
     # endif
     for(label nodeI=0;nodeI<nNodes_;++nodeI)
     {

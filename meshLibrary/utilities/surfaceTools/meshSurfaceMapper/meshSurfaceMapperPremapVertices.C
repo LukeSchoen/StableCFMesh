@@ -178,7 +178,7 @@ void meshSurfaceMapper::preMapVertices(const label nIterations)
     }
 
     # ifdef USE_OMP
-    # pragma omp parallel for if(false) schedule(dynamic, 20)
+    # pragma omp parallel for schedule(dynamic, 20)
     # endif
     forAll(bFaces, bfI)
     {
@@ -193,14 +193,44 @@ void meshSurfaceMapper::preMapVertices(const label nIterations)
         }
     }
 
-    for(label iterI=0;iterI<nIterations;++iterI)
+    List<List<labelPair> > sortedPointFaces(pointFaces.size());
+    # ifdef USE_OMP
+    # pragma omp parallel for schedule(dynamic, 40)
+    # endif
+    forAll(pointFaces, bpI)
     {
-        //- find patches in the vicinity of a boundary face
-        List<DynList<label> > boundaryPointPatches(boundaryPoints.size());
+        List<labelPair>& faceOrder = sortedPointFaces[bpI];
+        faceOrder.setSize(pointFaces.sizeOfRow(bpI));
+
+        forAllRow(pointFaces, bpI, pfI)
+        {
+            faceOrder[pfI] =
+                labelPair(pointFaces(bpI, pfI), pointInFace(bpI, pfI));
+        }
+
+        sort
+        (
+            faceOrder,
+            [](const labelPair& a, const labelPair& b)
+            {
+                if( a.first() < b.first() )
+                    return true;
+                if( a.first() > b.first() )
+                    return false;
+
+                return a.second() < b.second();
+            }
+        );
+    }
+
+    //- Face-to-patch classification is topology-driven and expensive.
+    //- Reuse it across smoothing iterations instead of rebuilding it each time.
+    List<DynList<label> > boundaryPointPatches(boundaryPoints.size());
+    {
         LongList<labelPair> boundaryPointPatchPairs;
 
         # ifdef USE_OMP
-        # pragma omp parallel if(false)
+        # pragma omp parallel
         # endif
         {
             LongList<labelPair> localPairs;
@@ -297,55 +327,38 @@ void meshSurfaceMapper::preMapVertices(const label nIterations)
             const labelPair& pp = orderedBoundaryPointPatchPairs[i];
             boundaryPointPatches[pp.first()].appendIfNotIn(pp.second());
         }
+    }
 
-        if( preMapDebugEnabled() )
+    if( preMapDebugEnabled() )
+    {
+        uint64_t patchDigest(1469598103934665603ULL);
+        forAll(boundaryPointPatches, bpI)
         {
-            uint64_t patchDigest(1469598103934665603ULL);
-            forAll(boundaryPointPatches, bpI)
-            {
-                hashCombineU64(patchDigest, static_cast<uint64_t>(bpI));
-                forAll(boundaryPointPatches[bpI], i)
-                    hashCombineU64
-                    (
-                        patchDigest,
-                        static_cast<uint64_t>(boundaryPointPatches[bpI][i] + 1)
-                    );
-            }
-
-            reportPreMapDigest("patches", patchDigest);
+            hashCombineU64(patchDigest, static_cast<uint64_t>(bpI));
+            forAll(boundaryPointPatches[bpI], i)
+                hashCombineU64
+                (
+                    patchDigest,
+                    static_cast<uint64_t>(boundaryPointPatches[bpI][i] + 1)
+                );
         }
+
+        reportPreMapDigest("patches", patchDigest);
+    }
+
+    for(label iterI=0;iterI<nIterations;++iterI)
+    {
 
         //- use the shrinking laplace first
         # ifdef USE_OMP
-        # pragma omp parallel for if(false) schedule(dynamic, 40)
+        # pragma omp parallel for schedule(dynamic, 40)
         # endif
         forAll(pointFaces, bpI)
         {
             labelledPointScalar lp(bpI, vector::zero, 0.0);
 
             const point& p = points[boundaryPoints[bpI]];
-            LongList<labelPair> faceOrder;
-
-            forAllRow(pointFaces, bpI, pfI)
-                faceOrder.append(labelPair(pointFaces(bpI, pfI), pointInFace(bpI, pfI)));
-
-            List<labelPair> sortedFaceOrder(faceOrder.size());
-            forAll(sortedFaceOrder, i)
-                sortedFaceOrder[i] = faceOrder[i];
-
-            sort
-            (
-                sortedFaceOrder,
-                [](const labelPair& a, const labelPair& b)
-                {
-                    if( a.first() < b.first() )
-                        return true;
-                    if( a.first() > b.first() )
-                        return false;
-
-                    return a.second() < b.second();
-                }
-            );
+            const List<labelPair>& sortedFaceOrder = sortedPointFaces[bpI];
 
             forAll(sortedFaceOrder, i)
             {

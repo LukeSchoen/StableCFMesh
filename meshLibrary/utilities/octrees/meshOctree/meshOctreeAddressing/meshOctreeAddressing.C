@@ -53,6 +53,8 @@ void meshOctreeAddressing::clearNodeAddressing()
     nNodes_ = 0;
     deleteDemandDrivenData(octreePointsPtr_);
     deleteDemandDrivenData(nodeLabelsPtr_);
+    deleteDemandDrivenData(nodeRepresentativeLeavesPtr_);
+    deleteDemandDrivenData(nodeRepresentativeCornersPtr_);
     deleteDemandDrivenData(nodeLeavesPtr_);
 
     deleteDemandDrivenData(nodeTypePtr_);
@@ -112,6 +114,8 @@ meshOctreeAddressing::meshOctreeAddressing
     nNodes_(0),
     octreePointsPtr_(NULL),
     nodeLabelsPtr_(NULL),
+    nodeRepresentativeLeavesPtr_(NULL),
+    nodeRepresentativeCornersPtr_(NULL),
     nodeLeavesPtr_(NULL),
     boxTypePtr_(NULL),
     nodeTypePtr_(NULL),
